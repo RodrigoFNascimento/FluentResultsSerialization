@@ -7,6 +7,8 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Description>Serializes FluentResuts' Result to Microsoft's IResult.</Description>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Version>2.0.0</Version>
+    <PackageReleaseNotes>Updates FluentResults to version 4.0.0.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -18,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentResults" Version="3.16.0" />
+    <PackageReference Include="FluentResults" Version="4.0.0" />
   </ItemGroup>
 
 	<ItemGroup>

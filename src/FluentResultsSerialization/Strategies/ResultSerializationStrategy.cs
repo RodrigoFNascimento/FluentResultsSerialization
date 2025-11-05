@@ -1,5 +1,4 @@
 ﻿using FluentResults;
-using FluentResultsSerialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -65,14 +64,14 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
         if (!string.IsNullOrWhiteSpace(_detail))
             detail = _detail;
         else
-            detail = result.Errors.Find(x => _handledReasons.Contains(x.GetType()))?.Message
+            detail = result.Errors.FirstOrDefault(x => _handledReasons.Contains(x.GetType()))?.Message
                 ?? result.Errors.FirstOrDefault()?.Message
                 ?? string.Empty;
 
         var problemDetails = new ProblemDetails();
 
         var validationErrors = result
-            .Errors.Find(x => x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata) && metadata is IDictionary<string, string[]>)
+            .Errors.FirstOrDefault(x => x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata) && metadata is IDictionary<string, string[]>)
             ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>;
 
         if (validationErrors is not null)
