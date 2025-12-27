@@ -1,6 +1,5 @@
 ﻿using FluentResults;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace FluentResultsSerialization.Strategies;
@@ -68,19 +67,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
                 ?? result.Errors.FirstOrDefault()?.Message
                 ?? string.Empty;
 
-        var problemDetails = new ProblemDetails();
-
-        var validationErrors = result
-            .Errors.FirstOrDefault(x => x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata) && metadata is IDictionary<string, string[]>)
-            ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>;
-
-        if (validationErrors is not null)
-            problemDetails = new ValidationProblemDetails(validationErrors!);
-
-        problemDetails.Type = _type;
-        problemDetails.Title = _title;
-        problemDetails.Detail = detail;
-        problemDetails.Status = (int)_status;
+        var extensions = new Dictionary<string, object?>();
 
         /* By adding the actual Reasons, the nested IReason doesn't get added to the JSON,
          * since IReason does not have a Reasons property. Since this method serializes
@@ -88,9 +75,16 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
          * since they do contain a Reasons property that is therefore added to the JSON.
          */
         if (_showReasons)
-            problemDetails.Extensions.Add(nameof(result.Reasons).ToLower(), result.Errors);
+            extensions.Add(nameof(result.Reasons).ToLower(), result.Errors);
 
-        return Results.Json(problemDetails, contentType: _contentType, statusCode: (int)_status);
+        var validationErrors = result
+            .Errors.FirstOrDefault(x => x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata) && metadata is IDictionary<string, string[]>)
+            ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>;
+
+        if (validationErrors is not null)
+            return Results.ValidationProblem(validationErrors, detail, _instance, (int)_status, _title, _type);
+
+        return Results.Problem(detail, _instance, (int)_status, _title, _type, extensions);
     }
 
     /// <summary>
