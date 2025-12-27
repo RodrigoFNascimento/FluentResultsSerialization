@@ -1,5 +1,7 @@
 ﻿using FluentResults;
+using FluentResultsSerialization.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using System.Net;
 
 namespace FluentResultsSerialization.Strategies;
@@ -12,31 +14,42 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     internal string _detail = string.Empty;
     internal string _instance = string.Empty;
     internal HttpStatusCode _status;
+    internal Dictionary<string, StringValues> _headers = new();
     internal bool _showReasons;
     internal List<Type> _handledReasons = Array.Empty<Type>().ToList();
     internal List<Func<Result, bool>> _resultPredicates = new();
     internal Dictionary<Type, object> _genericResultPredicates = new();
     internal List<Func<Result, bool>> _defaultSuccessPredicates = new();
+    internal Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
 
     public IResult Serialize(Result result)
     {
-        if (result.IsSuccess)
-            return Results.StatusCode((int)_status);
+        GetHeaders(result);
 
-        return SerializeFailedResult(result);
+        if (result.IsSuccess)
+            return Results.StatusCode((int)_status)
+                .WithHeaders(_headers);
+
+        return SerializeFailedResult(result)
+            .WithHeaders(_headers);
     }
 
     public IResult Serialize<TValue>(Result<TValue> result)
     {
+        GetHeaders(result);
+
         if (result.IsSuccess)
         {
             if (!ShouldHaveResponseBody(_status))
-                return Results.StatusCode((int)_status);
+                return Results.StatusCode((int)_status)
+                    .WithHeaders(_headers);
 
-            return Results.Json(result.Value, contentType: _contentType, statusCode: (int)_status);
+            return Results.Json(result.Value, contentType: _contentType, statusCode: (int)_status)
+                .WithHeaders(_headers);
         }
 
-        return SerializeFailedResult(result.ToResult());
+        return SerializeFailedResult(result.ToResult())
+            .WithHeaders(_headers);
     }
 
     public bool ShouldSerialize(Result result) =>
@@ -55,6 +68,28 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
         return result.Reasons.Exists(reason => _handledReasons.Contains(reason.GetType()))
             || _defaultSuccessPredicates.Exists(predicate => predicate(result.ToResult()));
     }
+
+    /// <summary>
+    /// Processes the header predicates and add the results to the headers.
+    /// </summary>
+    /// <param name="result">The Result from which the headers will be extracted.</param>
+    private void GetHeaders(Result result)
+    {
+        foreach (var predicate in _headerPredicates)
+        {
+            var value = predicate.Value(result);
+            if (!StringValues.IsNullOrEmpty(value))
+                _headers.Add(predicate.Key, value);
+        }
+    }
+
+    /// <summary>
+    /// Processes the header predicates and add the results to the headers.
+    /// </summary>
+    /// <typeparam name="TValue">The value of the Result.</typeparam>
+    /// <param name="result">The Result from which the headers will be extracted.</param>
+    private void GetHeaders<TValue>(Result<TValue> result) =>
+        GetHeaders(result.ToResult());
 
     private IResult SerializeFailedResult(Result result)
     {

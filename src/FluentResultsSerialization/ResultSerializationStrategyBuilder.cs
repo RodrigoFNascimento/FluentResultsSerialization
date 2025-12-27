@@ -3,6 +3,7 @@ using FluentResultsSerialization.Generators;
 using FluentResultsSerialization.Strategies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using System.Net;
 using System.Net.Mime;
 
@@ -17,6 +18,7 @@ public class ResultSerializationStrategyBuilder
     private readonly List<Func<Result, bool>> _resultPredicates = new();
     private readonly Dictionary<Type, object> _genericResultPredicates = new();
     private readonly List<Func<Result, bool>> _defaultSuccessPredicates = new();
+    private readonly Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
 
     private string _contentType = MediaTypeNames.Application.Json;
     private string _title = string.Empty;
@@ -24,6 +26,7 @@ public class ResultSerializationStrategyBuilder
     private string _detail = string.Empty;
     private string _instance = string.Empty;
     private HttpStatusCode _status;
+    private Dictionary<string, StringValues> _headers = new();
     private bool _showReasons;
 
     /// <summary>
@@ -127,6 +130,52 @@ public class ResultSerializationStrategyBuilder
         _detail = detail;
         return this;
     }
+    
+    /// <summary>
+    /// Adds a header to the HTTP response.
+    /// </summary>
+    /// <param name="key">Header key.</param>
+    /// <param name="value">Header values.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or whitespace.</exception>
+    public ResultSerializationStrategyBuilder WithHeader(string key, StringValues value)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidHeaderKey"), nameof(key));
+
+        _headers.Add(key, value);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds headers to the HTTP response.
+    /// </summary>
+    /// <param name="headers">Headers.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentException">Thrown when any of the keys is null or whitespace.</exception>
+    public ResultSerializationStrategyBuilder WithHeaders(IDictionary<string, StringValues> headers)
+    {
+        foreach (var header in headers)
+            WithHeader(header.Key, header.Value);
+
+        return this;
+    }
+
+    /// <summary>
+    /// Adds headers to the HTTP response.
+    /// </summary>
+    /// <param name="key">Header key.</param>
+    /// <param name="predicate"></param>
+    /// <returns>The logic used to determine the value of the header.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or whitespace.</exception>
+    public ResultSerializationStrategyBuilder WithHeaders(string key, Func<Result, StringValues> predicate)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidHeaderKey"), nameof(key));
+
+        _headerPredicates.Add(key, predicate);
+        return this;
+    }
 
     /// <summary>
     /// Sets the value of the "instance" member of the Problem Details object.
@@ -225,11 +274,13 @@ public class ResultSerializationStrategyBuilder
             _detail = _detail,
             _instance = _instance,
             _status = _status,
+            _headers = _headers,
             _showReasons = _showReasons,
             _resultPredicates = _resultPredicates,
             _genericResultPredicates = _genericResultPredicates,
             _defaultSuccessPredicates = _defaultSuccessPredicates,
-            _handledReasons = _handledReasons
+            _handledReasons = _handledReasons,
+            _headerPredicates = _headerPredicates
         };
 
         return strategy;

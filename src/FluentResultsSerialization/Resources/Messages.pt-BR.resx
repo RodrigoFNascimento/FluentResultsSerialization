@@ -126,6 +126,9 @@
   <data name="InvalidDetail" xml:space="preserve">
     <value>Detail inválido.</value>
   </data>
+  <data name="InvalidHeaderKey" xml:space="preserve">
+    <value>Key do header inválida.</value>
+  </data>
   <data name="InvalidInstance" xml:space="preserve">
     <value>Instance inválido.</value>
   </data>
