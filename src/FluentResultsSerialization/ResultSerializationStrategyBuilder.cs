@@ -1,9 +1,7 @@
 ﻿using FluentResults;
 using FluentResultsSerialization.Generators;
 using FluentResultsSerialization.Strategies;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using System.Net;
 using System.Net.Mime;
@@ -30,7 +28,6 @@ public class ResultSerializationStrategyBuilder
     private HttpStatusCode _status;
     private Dictionary<string, object?> _extensions = new();
     private Dictionary<string, StringValues> _headers = new();
-    private bool _showReasons;
 
     /// <summary>
     /// Indicates which <see cref="IReason"/> the strategy should handle.
@@ -88,18 +85,6 @@ public class ResultSerializationStrategyBuilder
     public ResultSerializationStrategyBuilder HandleSuccess()
     {
         _defaultSuccessPredicates.Add(result => result.IsSuccess);
-        return this;
-    }
-
-    /// <summary>
-    /// Whether the extension members of the <see cref="ProblemDetails"/>
-    /// should contain the data from all the <see cref="IReason"/>
-    /// of the <see cref="Result"/>.
-    /// </summary>
-    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
-    public ResultSerializationStrategyBuilder ShowReasons()
-    {
-        _showReasons = true;
         return this;
     }
 
@@ -305,7 +290,6 @@ public class ResultSerializationStrategyBuilder
             _status = _status,
             _headers = _headers,
             _extensions = _extensions,
-            _showReasons = _showReasons,
             _resultPredicates = _resultPredicates,
             _genericResultPredicates = _genericResultPredicates,
             _defaultSuccessPredicates = _defaultSuccessPredicates,

@@ -16,7 +16,6 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     internal HttpStatusCode _status;
     internal Dictionary<string, object?> _extensions = new();
     internal Dictionary<string, StringValues> _headers = new();
-    internal bool _showReasons;
     internal List<Type> _handledReasons = Array.Empty<Type>().ToList();
     internal List<Func<Result, bool>> _resultPredicates = new();
     internal Dictionary<Type, object> _genericResultPredicates = new();
@@ -118,14 +117,6 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
                 ?? string.Empty;
 
         GetExtensions(result);
-
-        /* By adding the actual Reasons, the nested IReason doesn't get added to the JSON,
-         * since IReason does not have a Reasons property. Since this method serializes
-         * failed Result, we assume that the Errors are what really matter and add them instead,
-         * since they do contain a Reasons property that is therefore added to the JSON.
-         */
-        if (_showReasons)
-            _extensions.Add(nameof(result.Reasons).ToLower(), result.Errors);
 
         var validationErrors = result
             .Errors.FirstOrDefault(x => x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata) && metadata is IDictionary<string, string[]>)
