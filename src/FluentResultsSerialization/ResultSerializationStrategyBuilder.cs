@@ -1,6 +1,7 @@
 ﻿using FluentResults;
 using FluentResultsSerialization.Generators;
 using FluentResultsSerialization.Strategies;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -19,6 +20,7 @@ public class ResultSerializationStrategyBuilder
     private readonly Dictionary<Type, object> _genericResultPredicates = new();
     private readonly List<Func<Result, bool>> _defaultSuccessPredicates = new();
     private readonly Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
+    private readonly Dictionary<string, Func<Result, object?>> _extensionPredicates = new();
 
     private string _contentType = MediaTypeNames.Application.Json;
     private string _title = string.Empty;
@@ -26,6 +28,7 @@ public class ResultSerializationStrategyBuilder
     private string _detail = string.Empty;
     private string _instance = string.Empty;
     private HttpStatusCode _status;
+    private Dictionary<string, object?> _extensions = new();
     private Dictionary<string, StringValues> _headers = new();
     private bool _showReasons;
 
@@ -128,6 +131,32 @@ public class ResultSerializationStrategyBuilder
             throw new ArgumentException(LocalizationHelper.GetMessage("InvalidDetail"), nameof(detail));
 
         _detail = detail;
+        return this;
+    }
+    
+    public ResultSerializationStrategyBuilder WithExtension(string key, object? value)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidHeaderKey"), nameof(key));
+
+        _extensions.Add(key, value);
+        return this;
+    }
+    
+    public ResultSerializationStrategyBuilder WithExtension(IDictionary<string, object?> extensions)
+    {
+        foreach (var extension in extensions)
+            WithExtension(extension.Key, extension.Value);
+
+        return this;
+    }
+    
+    public ResultSerializationStrategyBuilder WithExtension(string key, Func<Result, object?> predicate)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidHeaderKey"), nameof(key));
+
+        _extensionPredicates.Add(key, predicate);
         return this;
     }
     
@@ -275,12 +304,14 @@ public class ResultSerializationStrategyBuilder
             _instance = _instance,
             _status = _status,
             _headers = _headers,
+            _extensions = _extensions,
             _showReasons = _showReasons,
             _resultPredicates = _resultPredicates,
             _genericResultPredicates = _genericResultPredicates,
             _defaultSuccessPredicates = _defaultSuccessPredicates,
             _handledReasons = _handledReasons,
-            _headerPredicates = _headerPredicates
+            _headerPredicates = _headerPredicates,
+            _extensionPredicates = _extensionPredicates
         };
 
         return strategy;

@@ -14,6 +14,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     internal string _detail = string.Empty;
     internal string _instance = string.Empty;
     internal HttpStatusCode _status;
+    internal Dictionary<string, object?> _extensions = new();
     internal Dictionary<string, StringValues> _headers = new();
     internal bool _showReasons;
     internal List<Type> _handledReasons = Array.Empty<Type>().ToList();
@@ -21,6 +22,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     internal Dictionary<Type, object> _genericResultPredicates = new();
     internal List<Func<Result, bool>> _defaultSuccessPredicates = new();
     internal Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
+    internal Dictionary<string, Func<Result, object?>> _extensionPredicates = new();
 
     public IResult Serialize(Result result)
     {
@@ -70,6 +72,19 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     }
 
     /// <summary>
+    /// Processes the extension predicates and add the results to the extensions.
+    /// </summary>
+    /// <param name="result">The Result from which the extensions will be extracted.</param>
+    private void GetExtensions(Result result)
+    {
+        foreach (var predicate in _extensionPredicates)
+        {
+            var value = predicate.Value(result);
+            _extensions.Add(predicate.Key, value);
+        }
+    }
+
+    /// <summary>
     /// Processes the header predicates and add the results to the headers.
     /// </summary>
     /// <param name="result">The Result from which the headers will be extracted.</param>
@@ -102,7 +117,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
                 ?? result.Errors.FirstOrDefault()?.Message
                 ?? string.Empty;
 
-        var extensions = new Dictionary<string, object?>();
+        GetExtensions(result);
 
         /* By adding the actual Reasons, the nested IReason doesn't get added to the JSON,
          * since IReason does not have a Reasons property. Since this method serializes
@@ -110,7 +125,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
          * since they do contain a Reasons property that is therefore added to the JSON.
          */
         if (_showReasons)
-            extensions.Add(nameof(result.Reasons).ToLower(), result.Errors);
+            _extensions.Add(nameof(result.Reasons).ToLower(), result.Errors);
 
         var validationErrors = result
             .Errors.FirstOrDefault(x => x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata) && metadata is IDictionary<string, string[]>)
@@ -119,7 +134,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
         if (validationErrors is not null)
             return Results.ValidationProblem(validationErrors, detail, _instance, (int)_status, _title, _type);
 
-        return Results.Problem(detail, _instance, (int)_status, _title, _type, extensions);
+        return Results.Problem(detail, _instance, (int)_status, _title, _type, _extensions);
     }
 
     /// <summary>
