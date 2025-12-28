@@ -7,7 +7,6 @@ using System.Net;
 namespace FluentResultsSerialization.Strategies;
 internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
 {
-    private const string ValidationErrorsKey = "ValidationErrors";
     internal string _contentType = string.Empty;
     internal string? _title = string.Empty;
     internal string? _type = string.Empty;
@@ -23,6 +22,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     internal Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
     internal Dictionary<string, Func<Result, object?>> _extensionPredicates = new();
     internal Func<Result, string>? _detailPredicate;
+    internal Func<Result, IDictionary<string, string[]>>? _validationErrorsPredicate;
 
     public IResult Serialize(Result result)
     {
@@ -115,9 +115,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     {
         GetExtensions(result);
 
-        var validationErrors = result
-            .Errors.FirstOrDefault(x => x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata) && metadata is IDictionary<string, string[]>)
-            ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>;
+        var validationErrors = _validationErrorsPredicate?.Invoke(result);
 
         if (validationErrors is not null)
             return Results.ValidationProblem(

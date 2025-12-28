@@ -21,6 +21,7 @@ public class ResultSerializationStrategyBuilder
     private readonly Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
     private readonly Dictionary<string, Func<Result, object?>> _extensionPredicates = new();
     private Func<Result, string>? _detailPredicate;
+    private Func<Result, IDictionary<string, string[]>>? _validationErrorsPredicate;
 
     private string _contentType = MediaTypeNames.Application.Json;
     private string? _title;
@@ -289,6 +290,18 @@ public class ResultSerializationStrategyBuilder
     }
 
     /// <summary>
+    /// Adds validation errors to the HTTP response.
+    /// </summary>
+    /// <param name="validationErrorsPredicate">The logic used to determine the validation errors.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    public ResultSerializationStrategyBuilder WithValidationErrors(
+        Func<Result, IDictionary<string, string[]>>? validationErrorsPredicate)
+    {
+        _validationErrorsPredicate = validationErrorsPredicate;
+        return this;
+    }
+
+    /// <summary>
     /// Creates a new instance of <see cref="ResultSerializationStrategy"/>
     /// with the provided configuration.
     /// </summary>
@@ -323,7 +336,8 @@ public class ResultSerializationStrategyBuilder
             _handledReasons = _handledReasons,
             _detailPredicate = _detailPredicate,
             _headerPredicates = _headerPredicates,
-            _extensionPredicates = _extensionPredicates
+            _extensionPredicates = _extensionPredicates,
+            _validationErrorsPredicate = _validationErrorsPredicate
         };
 
         return strategy;

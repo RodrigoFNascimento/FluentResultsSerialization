@@ -73,7 +73,17 @@ builder.Services.AddResultSerializationStrategy(builder => builder
     .WithStatus(System.Net.HttpStatusCode.BadRequest)
     .WithTitle("Invalid request data.")
     .WithContentType("application/problem+json")
-    .ShowReasons());
+    .WithValidationErrors(result =>
+    {
+        const string ValidationErrorsKey = "ValidationErrors";
+
+        return result.Errors
+            .FirstOrDefault(x =>
+                x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata)
+                && metadata is IDictionary<string, string[]>)
+            ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>
+            ?? new Dictionary<string, string[]>();
+    }));
 
 // Returns 403 Forbidden when the Result or Result<TValue>
 // contains AuthorizationFailError.
@@ -114,18 +124,20 @@ To help with debugging, responses may include details of what went wrong. To avo
 
 > :warning: All failed `Result` responses follow the [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) specification. It’s strongly recommended you understand this standard for proper usage.
 
-By default, the `detail` field will contain the message of the first `Error` in the `Result`:
+You can set the value of the field "detail" for all responses handled by that strategy:
 
 ```csharp
 builder.Services.AddResultSerializationStrategy(builder => builder
-    // ...
-    .WithStatus(System.Net.HttpStatusCode.InternalServerError));
+    .Handle<MyCustomError>()
+    .WithStatus(System.Net.HttpStatusCode.InternalServerError)
+    .WithDetail("Something went wrong."));
 
 var app = builder.Build();
 
 app.MapGet("/ping", (IResultSerializer serializer) =>
     serializer.Serialize(
-        Result.Fail("Database connection failed.")));
+        Result.Fail("Database connection failed.")
+            .WithError(new MyCustomError("Login failed for user 'DOMAIN\\username'."))));
 ```
 
 ```json
@@ -133,16 +145,17 @@ app.MapGet("/ping", (IResultSerializer serializer) =>
   "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
   "title": "An unexpected internal error occurred.",
   "status": 500,
-  "detail": "Database connection failed."
+  "detail": "Something went wrong."
 }
 ```
 
-To display a specific error message, configure the strategy to handle that specific error type:
+Or you can set the logic used during runtime to determine it's content:
 
 ```csharp
 builder.Services.AddResultSerializationStrategy(builder => builder
     .Handle<MyCustomError>()
-    .WithStatus(System.Net.HttpStatusCode.InternalServerError));
+    .WithStatus(System.Net.HttpStatusCode.InternalServerError)
+    .WithDetail(result => result.Errors.First().Message));
 
 var app = builder.Build();
 
@@ -161,41 +174,25 @@ app.MapGet("/ping", (IResultSerializer serializer) =>
 }
 ```
 
-To hide the real error message, provide a replacement message using `WithDetail`:
+To add extensions to the response body, use the method `WithExtension` to define the key and logic used to fetch the value:
 
 ```csharp
 builder.Services.AddResultSerializationStrategy(builder => builder
     // ...
-    .WithDetail("An error occurred. Please try again later."));
+    .WithExtension("error-codes", result =>
+    {
+        var value = result.Reasons
+            .SelectMany(r => r.Metadata)
+            .FirstOrDefault(m => m.Key == "error-codes")
+            .Value;
+
+        return value is null
+            ? StringValues.Empty
+            : new StringValues(value.ToString());
+    }));
 ```
 
-The `detail` field will then always return this value for the configured case:
-
-```json
-{
-  "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-  "title": "An unexpected internal error occurred.",
-  "status": 500,
-  "detail": "An error occurred. Please try again later."
-}
-```
-
-To include all `Reasons` in the response, use `ShowReasons`:
-
-```csharp
-builder.Services.AddResultSerializationStrategy(builder => builder
-    // ...
-    .ShowReasons());
-
-var app = builder.Build();
-
-app.MapGet("/ping", (IResultSerializer serializer) =>
-    serializer.Serialize(
-        Result.Fail("Database connection failed.")
-            .WithError("Login failed for user 'DOMAIN\\username'.")));
-```
-
-The details will be listed under the `reasons` field:
+The extension will be added to the root of the JSON.
 
 ```json
 {
@@ -203,25 +200,30 @@ The details will be listed under the `reasons` field:
   "title": "An unexpected internal error occurred.",
   "status": 500,
   "detail": "Database connection failed.",
-  "reasons": [
-    {
-      "message": "Database connection failed.",
-      "metadata": {}
-    },
-    {
-      "message": "Login failed for user 'DOMAIN\\username'.",
-      "metadata": {}
-    }
+  "error-codes": [
+    "ABC123",
+    "123ABC"
   ]
 }
 ```
 
-To return validation errors in the response, add an `Error` to a failed `Result` with `Metadata` containing a `ValidationErrors` key:
+To return validation errors in the response, use the method `WithValidationErrors` to define the logic used to fetch the errors:
 
 ```csharp
 builder.Services.AddResultSerializationStrategy(builder => builder
     .Handle<Error>()
-    .WithStatus(HttpStatusCode.BadRequest));
+    .WithStatus(HttpStatusCode.BadRequest)
+    .WithValidationErrors(result =>
+    {
+        const string ValidationErrorsKey = "ValidationErrors";
+
+        return result.Errors
+            .FirstOrDefault(x =>
+                x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata)
+                && metadata is IDictionary<string, string[]>)
+            ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>
+            ?? new Dictionary<string, string[]>();
+    }));
 
 var app = builder.Build();
 
