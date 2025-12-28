@@ -320,25 +320,33 @@ public class ResultSerializationStrategyBuilder
         if (_type == TypeGenerator.DefaultType)
             _title = ReasonPhraseGenerator.Generate(_status);
 
-        var strategy = new ResultSerializationStrategy()
+        var serializationData = new SerializationData()
         {
-            _contentType = _contentType,
-            _title = _title,
-            _type = _type,
-            _detail = _detail,
-            _instance = _instance,
-            _status = _status,
-            _headers = _headers,
-            _extensions = _extensions,
-            _resultPredicates = _resultPredicates,
-            _genericResultPredicates = _genericResultPredicates,
-            _defaultSuccessPredicates = _defaultSuccessPredicates,
-            _handledReasons = _handledReasons,
-            _detailPredicate = _detailPredicate,
-            _headerPredicates = _headerPredicates,
-            _extensionPredicates = _extensionPredicates,
-            _validationErrorsPredicate = _validationErrorsPredicate
+            ContentType = _contentType,
+            Headers = _headers,
+            Title = _title,
+            Type = _type,
+            Detail = _detail,
+            Instance = _instance,
+            Status = _status,
+            Extensions = _extensions
         };
+
+        var serializationPredicates = new SerializationPredicates()
+        {
+            ResultPredicates = _resultPredicates,
+            GenericResultPredicates = _genericResultPredicates,
+            DefaultSuccessPredicates = _defaultSuccessPredicates,
+            HeaderPredicates = _headerPredicates,
+            ExtensionPredicates = _extensionPredicates,
+            DetailPredicate = _detailPredicate,
+            ValidationErrorsPredicate = _validationErrorsPredicate
+        };
+
+        var strategy = new ResultSerializationStrategy(
+            serializationData,
+            serializationPredicates,
+            _handledReasons);
 
         return strategy;
     }

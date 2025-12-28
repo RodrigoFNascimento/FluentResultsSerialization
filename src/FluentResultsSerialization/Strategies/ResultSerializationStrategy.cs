@@ -7,33 +7,30 @@ using System.Net;
 namespace FluentResultsSerialization.Strategies;
 internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
 {
-    internal string _contentType = string.Empty;
-    internal string? _title = string.Empty;
-    internal string? _type = string.Empty;
-    internal string? _detail = string.Empty;
-    internal string? _instance = string.Empty;
-    internal HttpStatusCode _status;
-    internal Dictionary<string, object?> _extensions = new();
-    internal Dictionary<string, StringValues> _headers = new();
-    internal List<Type> _handledReasons = Array.Empty<Type>().ToList();
-    internal List<Func<Result, bool>> _resultPredicates = new();
-    internal Dictionary<Type, object> _genericResultPredicates = new();
-    internal List<Func<Result, bool>> _defaultSuccessPredicates = new();
-    internal Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
-    internal Dictionary<string, Func<Result, object?>> _extensionPredicates = new();
-    internal Func<Result, string>? _detailPredicate;
-    internal Func<Result, IDictionary<string, string[]>>? _validationErrorsPredicate;
+    private readonly List<Type> _handledReasons;
+    private readonly SerializationData _serializationData;
+    private readonly SerializationPredicates _serializationPredicates;
+
+    public ResultSerializationStrategy(
+        SerializationData serializationData,
+        SerializationPredicates serializationPredicates,
+        List<Type> handledReasons)
+    {
+        _serializationData = serializationData;
+        _serializationPredicates = serializationPredicates;
+        _handledReasons = handledReasons;
+    }
 
     public IResult Serialize(Result result)
     {
         GetHeaders(result);
 
         if (result.IsSuccess)
-            return Results.StatusCode((int)_status)
-                .WithHeaders(_headers);
+            return Results.StatusCode((int)_serializationData.Status)
+                .WithHeaders(_serializationData.Headers);
 
         return SerializeFailedResult(result)
-            .WithHeaders(_headers);
+            .WithHeaders(_serializationData.Headers);
     }
 
     public IResult Serialize<TValue>(Result<TValue> result)
@@ -42,33 +39,36 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
 
         if (result.IsSuccess)
         {
-            if (!ShouldHaveResponseBody(_status))
-                return Results.StatusCode((int)_status)
-                    .WithHeaders(_headers);
+            if (!ShouldHaveResponseBody(_serializationData.Status))
+                return Results.StatusCode((int)_serializationData.Status)
+                    .WithHeaders(_serializationData.Headers);
 
-            return Results.Json(result.Value, contentType: _contentType, statusCode: (int)_status)
-                .WithHeaders(_headers);
+            return Results.Json(
+                    result.Value,
+                    contentType: _serializationData.ContentType,
+                    statusCode: (int)_serializationData.Status)
+                .WithHeaders(_serializationData.Headers);
         }
 
         return SerializeFailedResult(result.ToResult())
-            .WithHeaders(_headers);
+            .WithHeaders(_serializationData.Headers);
     }
 
     public bool ShouldSerialize(Result result) =>
         result.Reasons.Exists(reason => _handledReasons.Contains(reason.GetType()))
-        || _resultPredicates.Exists(predicate => predicate(result))
-        || _defaultSuccessPredicates.Exists(predicate => predicate(result));
+        || _serializationPredicates.ResultPredicates.Exists(predicate => predicate(result))
+        || _serializationPredicates.DefaultSuccessPredicates.Exists(predicate => predicate(result));
 
     public bool ShouldSerialize<TValue>(Result<TValue> result)
     {
         var key = typeof(TValue);
-        if (_genericResultPredicates.TryGetValue(key, out var predicates))
+        if (_serializationPredicates.GenericResultPredicates.TryGetValue(key, out var predicates))
         {
             return ((GenericResultPredicateCollection<TValue>)predicates).Exists(result);
         }
 
         return result.Reasons.Exists(reason => _handledReasons.Contains(reason.GetType()))
-            || _defaultSuccessPredicates.Exists(predicate => predicate(result.ToResult()));
+            || _serializationPredicates.DefaultSuccessPredicates.Exists(predicate => predicate(result.ToResult()));
     }
 
     /// <summary>
@@ -77,10 +77,10 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     /// <param name="result">The Result from which the extensions will be extracted.</param>
     private void GetExtensions(Result result)
     {
-        foreach (var predicate in _extensionPredicates)
+        foreach (var predicate in _serializationPredicates.ExtensionPredicates)
         {
             var value = predicate.Value(result);
-            _extensions.Add(predicate.Key, value);
+            _serializationData.Extensions.Add(predicate.Key, value);
         }
     }
 
@@ -90,11 +90,11 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     /// <param name="result">The Result from which the headers will be extracted.</param>
     private void GetHeaders(Result result)
     {
-        foreach (var predicate in _headerPredicates)
+        foreach (var predicate in _serializationPredicates.HeaderPredicates)
         {
             var value = predicate.Value(result);
             if (!StringValues.IsNullOrEmpty(value))
-                _headers.Add(predicate.Key, value);
+                _serializationData.Headers.Add(predicate.Key, value);
         }
     }
 
@@ -115,25 +115,25 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     {
         GetExtensions(result);
 
-        var validationErrors = _validationErrorsPredicate?.Invoke(result);
+        var validationErrors = _serializationPredicates.ValidationErrorsPredicate?.Invoke(result);
 
         if (validationErrors is not null)
             return Results.ValidationProblem(
                 validationErrors,
-                _detail ?? _detailPredicate?.Invoke(result),
-                _instance,
-                (int)_status,
-                _title,
-                _type,
-                _extensions);
+                _serializationData.Detail ?? _serializationPredicates.DetailPredicate?.Invoke(result),
+                _serializationData.Instance,
+                (int)_serializationData.Status,
+                _serializationData.Title,
+                _serializationData.Type,
+                _serializationData.Extensions);
 
         return Results.Problem(
-            _detail ?? _detailPredicate?.Invoke(result),
-            _instance,
-            (int)_status,
-            _title,
-            _type,
-            _extensions);
+            _serializationData.Detail ?? _serializationPredicates.DetailPredicate?.Invoke(result),
+            _serializationData.Instance,
+            (int)_serializationData.Status,
+            _serializationData.Title,
+            _serializationData.Type,
+            _serializationData.Extensions);
     }
 
     /// <summary>
