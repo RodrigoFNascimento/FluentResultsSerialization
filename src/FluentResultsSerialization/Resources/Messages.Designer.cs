@@ -88,20 +88,20 @@ namespace FluentResultsSerialization.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid header key..
-        /// </summary>
-        internal static string InvalidHeaderKey {
-            get {
-                return ResourceManager.GetString("InvalidHeaderKey", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid instance..
         /// </summary>
         internal static string InvalidInstance {
             get {
                 return ResourceManager.GetString("InvalidInstance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The key cannot be null or empty..
+        /// </summary>
+        internal static string InvalidKey {
+            get {
+                return ResourceManager.GetString("InvalidKey", resourceCulture);
             }
         }
         

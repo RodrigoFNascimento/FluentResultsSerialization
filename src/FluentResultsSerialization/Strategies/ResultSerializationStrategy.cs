@@ -9,10 +9,10 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
 {
     private const string ValidationErrorsKey = "ValidationErrors";
     internal string _contentType = string.Empty;
-    internal string _title = string.Empty;
-    internal string _type = string.Empty;
-    internal string _detail = string.Empty;
-    internal string _instance = string.Empty;
+    internal string? _title = string.Empty;
+    internal string? _type = string.Empty;
+    internal string? _detail = string.Empty;
+    internal string? _instance = string.Empty;
     internal HttpStatusCode _status;
     internal Dictionary<string, object?> _extensions = new();
     internal Dictionary<string, StringValues> _headers = new();
@@ -22,6 +22,7 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     internal List<Func<Result, bool>> _defaultSuccessPredicates = new();
     internal Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
     internal Dictionary<string, Func<Result, object?>> _extensionPredicates = new();
+    internal Func<Result, string>? _detailPredicate;
 
     public IResult Serialize(Result result)
     {
@@ -105,17 +106,13 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
     private void GetHeaders<TValue>(Result<TValue> result) =>
         GetHeaders(result.ToResult());
 
+    /// <summary>
+    /// Serializes a failed <see cref="Result"/> to <see cref="IResult"/>.
+    /// </summary>
+    /// <param name="result">Failed Result to be serialized.</param>
+    /// <returns>The serialized <see cref="Result"/>.</returns>
     private IResult SerializeFailedResult(Result result)
     {
-        string detail;
-
-        if (!string.IsNullOrWhiteSpace(_detail))
-            detail = _detail;
-        else
-            detail = result.Errors.FirstOrDefault(x => _handledReasons.Contains(x.GetType()))?.Message
-                ?? result.Errors.FirstOrDefault()?.Message
-                ?? string.Empty;
-
         GetExtensions(result);
 
         var validationErrors = result
@@ -123,9 +120,22 @@ internal sealed class ResultSerializationStrategy : IResultSerializationStrategy
             ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>;
 
         if (validationErrors is not null)
-            return Results.ValidationProblem(validationErrors, detail, _instance, (int)_status, _title, _type);
+            return Results.ValidationProblem(
+                validationErrors,
+                _detail ?? _detailPredicate?.Invoke(result),
+                _instance,
+                (int)_status,
+                _title,
+                _type,
+                _extensions);
 
-        return Results.Problem(detail, _instance, (int)_status, _title, _type, _extensions);
+        return Results.Problem(
+            _detail ?? _detailPredicate?.Invoke(result),
+            _instance,
+            (int)_status,
+            _title,
+            _type,
+            _extensions);
     }
 
     /// <summary>

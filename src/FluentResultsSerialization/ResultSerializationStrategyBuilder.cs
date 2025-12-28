@@ -14,20 +14,22 @@ namespace FluentResultsSerialization;
 public class ResultSerializationStrategyBuilder
 {
     private readonly List<Type> _handledReasons = new();
+
     private readonly List<Func<Result, bool>> _resultPredicates = new();
     private readonly Dictionary<Type, object> _genericResultPredicates = new();
     private readonly List<Func<Result, bool>> _defaultSuccessPredicates = new();
     private readonly Dictionary<string, Func<Result, StringValues>> _headerPredicates = new();
     private readonly Dictionary<string, Func<Result, object?>> _extensionPredicates = new();
+    private Func<Result, string>? _detailPredicate;
 
     private string _contentType = MediaTypeNames.Application.Json;
-    private string _title = string.Empty;
-    private string _type = TypeGenerator.DefaultType;
-    private string _detail = string.Empty;
-    private string _instance = string.Empty;
+    private string? _title;
+    private string? _type = TypeGenerator.DefaultType;
+    private string? _detail;
+    private string? _instance;
     private HttpStatusCode _status;
-    private Dictionary<string, object?> _extensions = new();
-    private Dictionary<string, StringValues> _headers = new();
+    private readonly Dictionary<string, object?> _extensions = new();
+    private readonly Dictionary<string, StringValues> _headers = new();
 
     /// <summary>
     /// Indicates which <see cref="IReason"/> the strategy should handle.
@@ -109,37 +111,70 @@ public class ResultSerializationStrategyBuilder
     /// </summary>
     /// <param name="detail">A human-readable explanation specific to this occurrence of the problem.</param>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="detail"/> is null or whitespace.</exception>
-    public ResultSerializationStrategyBuilder WithDetail(string detail)
+    public ResultSerializationStrategyBuilder WithDetail(string? detail)
     {
-        if (string.IsNullOrWhiteSpace(detail))
-            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidDetail"), nameof(detail));
-
         _detail = detail;
         return this;
     }
-    
+
+    /// <summary>
+    /// Sets the value of the "detail" member of the Problem Details object.
+    /// </summary>
+    /// <param name="predicate">The logic used to determine the value of the detail.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is null.</exception>
+    public ResultSerializationStrategyBuilder WithDetail(Func<Result, string> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        _detailPredicate = predicate;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds an extension to problem details response bodies.
+    /// </summary>
+    /// <param name="key">Extension key.</param>
+    /// <param name="value">Extension value.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or whitespace.</exception>
     public ResultSerializationStrategyBuilder WithExtension(string key, object? value)
     {
         if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidHeaderKey"), nameof(key));
+            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidKey"), nameof(key));
 
         _extensions.Add(key, value);
         return this;
     }
-    
-    public ResultSerializationStrategyBuilder WithExtension(IDictionary<string, object?> extensions)
+
+    /// <summary>
+    /// Adds extensions to problem details response bodies.
+    /// </summary>
+    /// <param name="extensions">The extensions to be added.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentException">Thrown when a key is null or whitespace.</exception>
+    public ResultSerializationStrategyBuilder WithExtensions(IDictionary<string, object?> extensions)
     {
         foreach (var extension in extensions)
             WithExtension(extension.Key, extension.Value);
 
         return this;
     }
-    
+
+    /// <summary>
+    /// Adds an extension to problem details response bodies.
+    /// </summary>
+    /// <param name="key">Extension key.</param>
+    /// <param name="predicate">The logic used to determine the value of the extension.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or whitespace.</exception>
     public ResultSerializationStrategyBuilder WithExtension(string key, Func<Result, object?> predicate)
     {
+        ArgumentNullException.ThrowIfNull(predicate);
+
         if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidHeaderKey"), nameof(key));
+            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidKey"), nameof(key));
 
         _extensionPredicates.Add(key, predicate);
         return this;
@@ -155,7 +190,7 @@ public class ResultSerializationStrategyBuilder
     public ResultSerializationStrategyBuilder WithHeader(string key, StringValues value)
     {
         if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidHeaderKey"), nameof(key));
+            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidKey"), nameof(key));
 
         _headers.Add(key, value);
         return this;
@@ -176,16 +211,19 @@ public class ResultSerializationStrategyBuilder
     }
 
     /// <summary>
-    /// Adds headers to the HTTP response.
+    /// Adds a header to the HTTP response.
     /// </summary>
     /// <param name="key">Header key.</param>
-    /// <param name="predicate"></param>
-    /// <returns>The logic used to determine the value of the header.</returns>
+    /// <param name="predicate">The logic used to determine the value of the header.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is null or whitespace.</exception>
-    public ResultSerializationStrategyBuilder WithHeaders(string key, Func<Result, StringValues> predicate)
+    public ResultSerializationStrategyBuilder WithHeader(string key, Func<Result, StringValues> predicate)
     {
+        ArgumentNullException.ThrowIfNull(predicate);
+
         if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidHeaderKey"), nameof(key));
+            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidKey"), nameof(key));
 
         _headerPredicates.Add(key, predicate);
         return this;
@@ -199,12 +237,8 @@ public class ResultSerializationStrategyBuilder
     /// It may or may not yield further information if dereferenced.
     /// </param>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="instance"/> is null or whitespace.</exception>
-    public ResultSerializationStrategyBuilder WithInstance(string instance)
+    public ResultSerializationStrategyBuilder WithInstance(string? instance)
     {
-        if (string.IsNullOrWhiteSpace(instance))
-            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidInstance"), nameof(instance));
-
         _instance = instance;
         return this;
     }
@@ -231,12 +265,8 @@ public class ResultSerializationStrategyBuilder
     /// see <see href="https://datatracker.ietf.org/doc/html/rfc7231#section-3.4">[RFC7231], Section 3.4</see>).
     /// </param>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="title"/> is null or whitespace.</exception>
-    public ResultSerializationStrategyBuilder WithTitle(string title)
+    public ResultSerializationStrategyBuilder WithTitle(string? title)
     {
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException(LocalizationHelper.GetMessage("InvalidTitle"), nameof(title));
-
         _title = title;
         return this;
     }
@@ -252,12 +282,9 @@ public class ResultSerializationStrategyBuilder
     /// When this member is not present, its value is assumed to be "about:blank".
     /// </param>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="type"/> is null or whitespace.</exception>
-    public ResultSerializationStrategyBuilder WithType(string type)
+    public ResultSerializationStrategyBuilder WithType(string? type)
     {
-        if (!string.IsNullOrWhiteSpace(type))
-            _type = type;
-
+        _type = type;
         return this;
     }
 
@@ -294,6 +321,7 @@ public class ResultSerializationStrategyBuilder
             _genericResultPredicates = _genericResultPredicates,
             _defaultSuccessPredicates = _defaultSuccessPredicates,
             _handledReasons = _handledReasons,
+            _detailPredicate = _detailPredicate,
             _headerPredicates = _headerPredicates,
             _extensionPredicates = _extensionPredicates
         };
