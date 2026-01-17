@@ -97,7 +97,7 @@ namespace FluentResultsSerialization.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The key cannot be null or empty..
+        ///   Looks up a localized string similar to Invalid key..
         /// </summary>
         internal static string InvalidKey {
             get {

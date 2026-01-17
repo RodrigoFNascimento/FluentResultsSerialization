@@ -126,11 +126,11 @@
   <data name="InvalidDetail" xml:space="preserve">
     <value>Invalid detail.</value>
   </data>
-  <data name="InvalidKey" xml:space="preserve">
-    <value>The key cannot be null or empty.</value>
-  </data>
   <data name="InvalidInstance" xml:space="preserve">
     <value>Invalid instance.</value>
+  </data>
+  <data name="InvalidKey" xml:space="preserve">
+    <value>Invalid key.</value>
   </data>
   <data name="InvalidTitle" xml:space="preserve">
     <value>Invalid title.</value>
