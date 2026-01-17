@@ -69,7 +69,7 @@ To define how `Result` instances are serialized, configure the behavior in DI us
 // Returns 400 Bad Request when the Result or Result<TValue>
 // contains a ValidationError. The error details are included in the response body.
 builder.Services.AddResultSerializationStrategy(builder => builder
-    .Handle<ValidationError>()
+    .HandleReason<ValidationError>()
     .WithStatus(System.Net.HttpStatusCode.BadRequest)
     .WithTitle("Invalid request data.")
     .WithContentType("application/problem+json")
@@ -88,7 +88,7 @@ builder.Services.AddResultSerializationStrategy(builder => builder
 // Returns 403 Forbidden when the Result or Result<TValue>
 // contains AuthorizationFailError.
 builder.Services.AddResultSerializationStrategy(builder => builder
-    .Handle<AuthorizationFailError>()
+    .HandleReason<AuthorizationFailError>()
     .WithStatus(System.Net.HttpStatusCode.Forbidden)
     .WithTitle("User authorization failed.")
     .WithContentType("application/problem+json"));
@@ -96,17 +96,17 @@ builder.Services.AddResultSerializationStrategy(builder => builder
 // Returns 201 Created when the Result or Result<TValue>
 // contains CreatedSuccess.
 builder.Services.AddResultSerializationStrategy(builder => builder
-    .Handle<CreatedSuccess>()
+    .HandleReason<CreatedSuccess>()
     .WithStatus(System.Net.HttpStatusCode.Created));
 
 // Returns 202 Accepted when a Result<SendDataRequest> is successful.
 builder.Services.AddResultSerializationStrategy(builder => builder
-    .Handle<SendDataRequest>(result => result.IsSuccess)
+    .HandleResult<SendDataRequest>(result => result.IsSuccess)
     .WithStatus(System.Net.HttpStatusCode.Accepted));
 
 // Returns 204 No Content for successful Results.
 builder.Services.AddResultSerializationStrategy(builder => builder
-    .Handle(result => result.IsSuccess)
+    .HandleResult(result => result.IsSuccess)
     .WithStatus(System.Net.HttpStatusCode.NoContent));
 
 // Returns 200 OK for successful Results
@@ -128,7 +128,7 @@ You can set the value of the field "detail" for all responses handled by that st
 
 ```csharp
 builder.Services.AddResultSerializationStrategy(builder => builder
-    .Handle<MyCustomError>()
+    .HandleReason<MyCustomError>()
     .WithStatus(System.Net.HttpStatusCode.InternalServerError)
     .WithDetail("Something went wrong."));
 
@@ -153,9 +153,9 @@ Or you can set the logic used during runtime to determine it's content:
 
 ```csharp
 builder.Services.AddResultSerializationStrategy(builder => builder
-    .Handle<MyCustomError>()
+    .HandleReason<MyCustomError>()
     .WithStatus(System.Net.HttpStatusCode.InternalServerError)
-    .WithDetail(result => result.Errors.First().Message));
+    .WithDetail(result => result.Errors[0].Message));
 
 var app = builder.Build();
 
@@ -211,7 +211,7 @@ To return validation errors in the response, use the method `WithValidationError
 
 ```csharp
 builder.Services.AddResultSerializationStrategy(builder => builder
-    .Handle<Error>()
+    .HandleReason<Error>()
     .WithStatus(HttpStatusCode.BadRequest)
     .WithValidationErrors(result =>
     {

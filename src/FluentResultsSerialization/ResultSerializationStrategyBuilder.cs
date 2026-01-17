@@ -36,7 +36,7 @@ public class ResultSerializationStrategyBuilder
     /// </summary>
     /// <typeparam name="TReason">The type of <see cref="IReason"/> that should be handled.</typeparam>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
-    public ResultSerializationStrategyBuilder Handle<TReason>() where TReason : IReason
+    public ResultSerializationStrategyBuilder HandleReason<TReason>() where TReason : IReason
     {
         _handledReasons.Add(typeof(TReason));
         return this;
@@ -48,7 +48,7 @@ public class ResultSerializationStrategyBuilder
     /// <param name="predicate">The logic used to determine whether the strategy can handle a <see cref="Result"/>.</param>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is null.</exception>
-    public ResultSerializationStrategyBuilder Handle(Func<Result, bool> predicate)
+    public ResultSerializationStrategyBuilder HandleResult(Func<Result, bool> predicate)
     {
         ArgumentNullException.ThrowIfNull(predicate);
 
@@ -63,7 +63,7 @@ public class ResultSerializationStrategyBuilder
     /// <param name="predicate">The logic used to determine whether the strategy can handle a <see cref="Result"/>.</param>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is null.</exception>
-    public ResultSerializationStrategyBuilder Handle<TValue>(Func<Result<TValue>, bool> predicate)
+    public ResultSerializationStrategyBuilder HandleResult<TValue>(Func<Result<TValue>, bool> predicate)
     {
         ArgumentNullException.ThrowIfNull(predicate);
 

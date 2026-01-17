@@ -46,7 +46,7 @@ public static class DependencyInjection
             .WithStatus(HttpStatusCode.OK));
 
         services.AddResultSerializationStrategy(builder => builder
-            .Handle<Error>()
+            .HandleReason<Error>()
             .WithTitle(LocalizationHelper.GetMessage("InternalErrorMessage"))
             .WithStatus(HttpStatusCode.InternalServerError)
             .WithContentType("application/problem+json"));
