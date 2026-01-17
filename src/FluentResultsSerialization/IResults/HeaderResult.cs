@@ -17,11 +17,11 @@ internal sealed class HeaderResult : IResult
         _headers = headers;
     }
 
-    public async Task ExecuteAsync(HttpContext context)
+    public async Task ExecuteAsync(HttpContext httpContext)
     {
         foreach (var header in _headers)
-            context.Response.Headers.Add(header.Key, header.Value);
+            httpContext.Response.Headers.Add(header.Key, header.Value);
 
-        await _inner.ExecuteAsync(context);
+        await _inner.ExecuteAsync(httpContext);
     }
 }

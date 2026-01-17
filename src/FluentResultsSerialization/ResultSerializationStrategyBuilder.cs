@@ -149,20 +149,6 @@ public class ResultSerializationStrategyBuilder
     }
 
     /// <summary>
-    /// Adds extensions to problem details response bodies.
-    /// </summary>
-    /// <param name="extensions">The extensions to be added.</param>
-    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
-    /// <exception cref="ArgumentException">Thrown when a key is null or whitespace.</exception>
-    public ResultSerializationStrategyBuilder WithExtensions(IDictionary<string, object?> extensions)
-    {
-        foreach (var extension in extensions)
-            WithExtension(extension.Key, extension.Value);
-
-        return this;
-    }
-
-    /// <summary>
     /// Adds an extension to problem details response bodies.
     /// </summary>
     /// <param name="key">Extension key.</param>
@@ -182,6 +168,20 @@ public class ResultSerializationStrategyBuilder
     }
     
     /// <summary>
+    /// Adds extensions to problem details response bodies.
+    /// </summary>
+    /// <param name="extensions">The extensions to be added.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentException">Thrown when a key is null or whitespace.</exception>
+    public ResultSerializationStrategyBuilder WithExtensions(IDictionary<string, object?> extensions)
+    {
+        foreach (var extension in extensions)
+            WithExtension(extension.Key, extension.Value);
+
+        return this;
+    }
+
+    /// <summary>
     /// Adds a header to the HTTP response.
     /// </summary>
     /// <param name="key">Header key.</param>
@@ -194,20 +194,6 @@ public class ResultSerializationStrategyBuilder
             throw new ArgumentException(LocalizationHelper.GetMessage("InvalidKey"), nameof(key));
 
         _headers.Add(key, value);
-        return this;
-    }
-
-    /// <summary>
-    /// Adds headers to the HTTP response.
-    /// </summary>
-    /// <param name="headers">Headers.</param>
-    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
-    /// <exception cref="ArgumentException">Thrown when any of the keys is null or whitespace.</exception>
-    public ResultSerializationStrategyBuilder WithHeaders(IDictionary<string, StringValues> headers)
-    {
-        foreach (var header in headers)
-            WithHeader(header.Key, header.Value);
-
         return this;
     }
 
@@ -227,6 +213,20 @@ public class ResultSerializationStrategyBuilder
             throw new ArgumentException(LocalizationHelper.GetMessage("InvalidKey"), nameof(key));
 
         _headerPredicates.Add(key, predicate);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds headers to the HTTP response.
+    /// </summary>
+    /// <param name="headers">Headers.</param>
+    /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
+    /// <exception cref="ArgumentException">Thrown when any of the keys is null or whitespace.</exception>
+    public ResultSerializationStrategyBuilder WithHeaders(IDictionary<string, StringValues> headers)
+    {
+        foreach (var header in headers)
+            WithHeader(header.Key, header.Value);
+
         return this;
     }
 
