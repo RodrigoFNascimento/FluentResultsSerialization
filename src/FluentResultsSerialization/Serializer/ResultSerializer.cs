@@ -1,4 +1,5 @@
-﻿using FluentResultsSerialization.Strategies;
+﻿using FluentResults;
+using FluentResultsSerialization.Strategies;
 using Microsoft.AspNetCore.Http;
 
 namespace FluentResultsSerialization.Serializer;
@@ -12,7 +13,7 @@ internal sealed class ResultSerializer : IResultSerializer
         _strategies = strategies;
     }
 
-    public IResult Serialize(FluentResults.Result result)
+    public IResult Serialize(Result result)
     {
         var correctStrategy = _strategies
             .FirstOrDefault(e => e.ShouldSerialize(result))
@@ -22,7 +23,7 @@ internal sealed class ResultSerializer : IResultSerializer
         return correctStrategy.Serialize(result);
     }
 
-    public IResult Serialize<TValue>(FluentResults.Result<TValue> result)
+    public IResult Serialize<TValue>(Result<TValue> result)
     {
         var correctStrategy = _strategies
             .FirstOrDefault(e => e.ShouldSerialize(result))

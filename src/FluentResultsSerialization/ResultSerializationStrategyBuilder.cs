@@ -45,7 +45,7 @@ public class ResultSerializationStrategyBuilder
     /// <summary>
     /// Indicates which <see cref="Result"/> the strategy should handle.
     /// </summary>
-    /// <param name="predicate">The logic used to determine whether the strategy can handle a <see cref="FluentResults.Result"/>.</param>
+    /// <param name="predicate">The logic used to determine whether the strategy can handle a <see cref="Result"/>.</param>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is null.</exception>
     public ResultSerializationStrategyBuilder Handle(Func<Result, bool> predicate)
