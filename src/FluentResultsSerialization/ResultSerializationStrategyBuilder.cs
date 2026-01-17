@@ -1,5 +1,4 @@
 ﻿using FluentResults;
-using FluentResultsSerialization.Generators;
 using FluentResultsSerialization.Strategies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
@@ -25,7 +24,7 @@ public class ResultSerializationStrategyBuilder
 
     private string _contentType = MediaTypeNames.Application.Json;
     private string? _title;
-    private string? _type = TypeGenerator.DefaultType;
+    private string? _type;
     private string? _detail;
     private string? _instance;
     private HttpStatusCode _status;
@@ -46,7 +45,7 @@ public class ResultSerializationStrategyBuilder
     /// <summary>
     /// Indicates which <see cref="Result"/> the strategy should handle.
     /// </summary>
-    /// <param name="predicate">The logic used to determine whether the strategy can handle a <see cref="Result"/>.</param>
+    /// <param name="predicate">The logic used to determine whether the strategy can handle a <see cref="FluentResults.Result"/>.</param>
     /// <returns>The instance of <see cref="ResultSerializationStrategyBuilder"/> for further configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="predicate"/> is null.</exception>
     public ResultSerializationStrategyBuilder Handle(Func<Result, bool> predicate)
@@ -166,7 +165,7 @@ public class ResultSerializationStrategyBuilder
         _extensionPredicates.Add(key, predicate);
         return this;
     }
-    
+
     /// <summary>
     /// Adds extensions to problem details response bodies.
     /// </summary>
@@ -308,18 +307,6 @@ public class ResultSerializationStrategyBuilder
     /// <returns>A new instance of <see cref="ResultSerializationStrategy"/>.</returns>
     internal ResultSerializationStrategy Build()
     {
-        if (_type == TypeGenerator.DefaultType)
-            _type = TypeGenerator.Generate(_status);
-
-        /*
-         * When "about:blank" is used, the title SHOULD be the same as the
-         * recommended HTTP status phrase for that code (e.g., "Not Found" for
-         * 404, and so on), although it MAY be localized to suit client
-         * preferences (expressed with the Accept-Language request header).
-         */
-        if (_type == TypeGenerator.DefaultType)
-            _title = ReasonPhraseGenerator.Generate(_status);
-
         var serializationData = new SerializationData()
         {
             ContentType = _contentType,
