@@ -3,7 +3,7 @@ using FluentResults.HttpMapping.Context;
 using FluentResults.HttpMapping.Rules;
 using Microsoft.AspNetCore.Http;
 
-namespace FluentResults.HttpMapping.Execution;
+namespace FluentResults.HttpMapping.Rules;
 
 /// <summary>
 /// Default rule that maps successful FluentResults to HTTP responses.
