@@ -26,4 +26,6 @@ internal sealed class DelegateHttpMappingRule : IHttpMappingRule
     /// <inheritdoc />
     public IResult Map(HttpResultMappingContext context)
         => _mapper(context);
+
+    public IReadOnlyList<HeaderDescriptor> Headers { get; }
 }

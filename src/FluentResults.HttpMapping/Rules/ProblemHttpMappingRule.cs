@@ -47,4 +47,6 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
             detail: _detail?.Invoke(context)
         );
     }
+
+    public IReadOnlyList<HeaderDescriptor> Headers { get; }
 }

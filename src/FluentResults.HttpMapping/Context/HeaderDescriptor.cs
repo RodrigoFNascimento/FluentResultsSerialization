@@ -3,7 +3,7 @@
 /// <summary>
 /// Describes an HTTP header to be produced by a mapping rule.
 /// </summary>
-internal sealed class HeaderDescriptor
+public sealed class HeaderDescriptor
 {
     /// <summary>
     /// The HTTP header name.

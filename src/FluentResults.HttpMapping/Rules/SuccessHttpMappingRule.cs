@@ -38,4 +38,7 @@ internal sealed class SuccessHttpMappingRule : IHttpMappingRule
         // Result → 204 No Content
         return Results.NoContent();
     }
+
+    public IReadOnlyList<HeaderDescriptor> Headers { get; }
+        = Array.Empty<HeaderDescriptor>();
 }
