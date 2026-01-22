@@ -14,6 +14,7 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
     private readonly HttpStatusCode _status;
     private readonly Func<HttpResultMappingContext, string?>? _title;
     private readonly Func<HttpResultMappingContext, string?>? _detail;
+    private readonly IReadOnlyList<HeaderDescriptor> _headers;
 
     /// <summary>
     /// Creates a problem mapping rule.
@@ -22,12 +23,14 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
         Func<HttpResultMappingContext, bool> predicate,
         HttpStatusCode status,
         Func<HttpResultMappingContext, string?>? title,
-        Func<HttpResultMappingContext, string?>? detail)
+        Func<HttpResultMappingContext, string?>? detail,
+        IReadOnlyList<HeaderDescriptor> headers)
     {
         _predicate = predicate;
         _status = status;
         _title = title;
         _detail = detail;
+        _headers = headers;
     }
 
     /// <summary>
@@ -48,5 +51,5 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
         );
     }
 
-    public IReadOnlyList<HeaderDescriptor> Headers { get; }
+    public IReadOnlyList<HeaderDescriptor> Headers => _headers;
 }

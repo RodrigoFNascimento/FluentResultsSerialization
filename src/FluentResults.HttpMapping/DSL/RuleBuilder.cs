@@ -43,6 +43,16 @@ public sealed class RuleBuilder
         var builder = new ProblemRuleBuilder();
         configure(builder);
 
-        Map(builder.Build());
+        var definition = builder.Build();
+
+        var rule = new ProblemHttpMappingRule(
+            _predicate,
+            definition.Status,
+            definition.Title,
+            definition.Detail,
+            definition.Headers
+        );
+
+        _commit(rule);
     }
 }

@@ -12,6 +12,7 @@ public sealed class ProblemRuleBuilder
     private HttpStatusCode? _status;
     private string? _title;
     private Func<HttpResultMappingContext, string?>? _detail;
+    private readonly List<HeaderDescriptor> _headers = new();
 
     /// <summary>
     /// Sets the HTTP status code.
@@ -41,12 +42,25 @@ public sealed class ProblemRuleBuilder
         return this;
     }
 
-    internal Func<HttpResultMappingContext, IResult> Build()
+    /// <summary>
+    /// Adds an HTTP header to the problem response.
+    /// </summary>
+    public ProblemRuleBuilder WithHeader(
+        string name,
+        Func<HttpResultMappingContext, string?> valueFactory)
     {
-        return ctx =>
-            Results.Problem(
-                statusCode: (int?)_status,
-                title: _title,
-                detail: _detail?.Invoke(ctx));
+        _headers.Add(new HeaderDescriptor(name, valueFactory));
+        return this;
+    }
+
+    internal ProblemRuleDefinition Build()
+    {
+        return new ProblemRuleDefinition
+        {
+            Status = _status ?? HttpStatusCode.InternalServerError,
+            Title = _title is null ? null : _ => _title,
+            Detail = _detail,
+            Headers = _headers.ToList()
+        };
     }
 }
