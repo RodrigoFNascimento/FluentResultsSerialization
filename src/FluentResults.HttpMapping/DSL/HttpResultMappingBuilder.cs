@@ -24,14 +24,30 @@ public sealed partial class HttpResultMappingBuilder
     }
 
     /// <summary>
-    /// Adds a rule that matches a specific error type.
+    /// Starts a rule that matches when the result contains
+    /// at least one error of type <typeparamref name="TError"/>.
     /// </summary>
     public RuleBuilder WhenError<TError>()
         where TError : IError
     {
-        return When(ctx =>
-            ctx.Result.IsFailed &&
-            ctx.Result.Reasons.OfType<TError>().Any());
+        return WhenError<TError>(_ => true);
+    }
+
+    /// <summary>
+    /// Starts a rule that matches when the result contains
+    /// at least one error of type <typeparamref name="TError"/>
+    /// matching the given predicate.
+    /// </summary>
+    public RuleBuilder WhenError<TError>(
+        Func<TError, bool> predicate)
+        where TError : IError
+    {
+        if (predicate is null)
+            throw new ArgumentNullException(nameof(predicate));
+
+        return WhenFailure(error =>
+            error is TError typedError &&
+            predicate(typedError));
     }
 
     /// <summary>
