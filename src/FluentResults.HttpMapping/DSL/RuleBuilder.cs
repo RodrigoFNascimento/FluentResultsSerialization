@@ -31,4 +31,18 @@ public sealed class RuleBuilder
         var rule = new DelegateHttpMappingRule(_predicate, mapper);
         _commit(rule);
     }
+
+    /// <summary>
+    /// Maps the matched failure to an RFC 7807 problem response.
+    /// </summary>
+    public void Problem(Action<ProblemRuleBuilder> configure)
+    {
+        if (configure is null)
+            throw new ArgumentNullException(nameof(configure));
+
+        var builder = new ProblemRuleBuilder();
+        configure(builder);
+
+        Map(builder.Build());
+    }
 }
