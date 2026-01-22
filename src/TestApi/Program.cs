@@ -1,5 +1,3 @@
-using FluentResults;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -23,7 +21,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    return Result.Ok(summaries);
+    return summaries;
 })
 .WithName("GetWeatherForecast");
 
