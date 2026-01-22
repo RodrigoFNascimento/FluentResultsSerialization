@@ -29,11 +29,23 @@ internal sealed class HttpMappingRuleSet : IHttpMappingRuleSet
     {
         foreach (var rule in _rules)
         {
-            if (rule.Matches(context))
-                return rule.Map(context);
+            if (!rule.Matches(context))
+                continue;
+
+            var result = rule.Map(context);
+
+            // Apply collected headers
+            foreach (var header in context.Headers)
+            {
+                context.HttpContext.Response.Headers[header.Key] =
+                    new Microsoft.Extensions.Primitives.StringValues(header.Value);
+            }
+
+            return result;
         }
 
         throw new InvalidOperationException(
             "No HTTP mapping rule matched the result.");
     }
+
 }

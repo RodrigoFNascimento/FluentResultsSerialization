@@ -1,4 +1,5 @@
 ﻿using FluentResults;
+using Microsoft.AspNetCore.Http;
 
 namespace FluentResults.HttpMapping.Context;
 
@@ -72,4 +73,23 @@ public sealed class HttpResultMappingContext
         => Reasons
             .Where(r => r.Metadata.ContainsKey(key))
             .Select(r => r.Metadata[key]);
+
+    /// <summary>
+    /// Headers to be applied to the HTTP response.
+    /// </summary>
+    public IDictionary<string, string[]> Headers { get; }
+        = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Adds or replaces a response header.
+    /// </summary>
+    public void AddHeader(string name, params string[] values)
+    {
+        Headers[name] = values;
+    }
+
+    /// <summary>
+    /// The current ASP.NET HTTP context.
+    /// </summary>
+    public HttpContext HttpContext { get; }
 }
