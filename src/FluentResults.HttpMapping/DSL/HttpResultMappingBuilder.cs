@@ -24,10 +24,21 @@ public sealed partial class HttpResultMappingBuilder
     }
 
     /// <summary>
+    /// Adds a rule that matches a specific error type.
+    /// </summary>
+    public RuleBuilder WhenError<TError>()
+        where TError : IError
+    {
+        return When(ctx =>
+            ctx.Result.IsFailed &&
+            ctx.Result.Reasons.OfType<TError>().Any());
+    }
+
+    /// <summary>
     /// Starts a rule that matches any failed result.
     /// </summary>
     public RuleBuilder WhenFailure()
-        => When(ctx => !ctx.Result.IsSuccess);
+        => When(ctx => ctx.Result.IsFailed);
 
     /// <summary>
     /// Starts a rule that matches a failed result
@@ -41,6 +52,14 @@ public sealed partial class HttpResultMappingBuilder
         return When(ctx =>
             !ctx.Result.IsSuccess &&
             ctx.Result.Errors.Any(predicate));
+    }
+
+    /// <summary>
+    /// Adds a rule that matches successful results.
+    /// </summary>
+    public RuleBuilder WhenSuccess()
+    {
+        return When(ctx => ctx.Result.IsSuccess);
     }
 
     /// <summary>
