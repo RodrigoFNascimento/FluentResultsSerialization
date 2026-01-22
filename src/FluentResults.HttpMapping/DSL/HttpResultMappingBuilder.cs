@@ -51,6 +51,61 @@ public sealed partial class HttpResultMappingBuilder
     }
 
     /// <summary>
+    /// Matches when the result contains an error of type
+    /// <typeparamref name="TError"/> with the given metadata key.
+    /// </summary>
+    public RuleBuilder WhenErrorWithMetadata<TError>(string key)
+        where TError : IError
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException("Metadata key cannot be null or empty.", nameof(key));
+
+        return WhenError<TError>(e =>
+            e.Metadata.ContainsKey(key));
+    }
+
+    /// <summary>
+    /// Matches when the result contains an error of type
+    /// <typeparamref name="TError"/> with the given metadata key and value.
+    /// </summary>
+    public RuleBuilder WhenErrorWithMetadata<TError>(
+        string key,
+        string value)
+        where TError : IError
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException("Metadata key cannot be null or empty.", nameof(key));
+
+        return WhenError<TError>(e =>
+            e.Metadata.TryGetValue(key, out var metadataValue) &&
+            string.Equals(
+                metadataValue?.ToString(),
+                value,
+                StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Matches when the result contains an error of type
+    /// <typeparamref name="TError"/> whose metadata value
+    /// satisfies the given predicate.
+    /// </summary>
+    public RuleBuilder WhenErrorWithMetadata<TError>(
+        string key,
+        Func<object?, bool> predicate)
+        where TError : IError
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException("Metadata key cannot be null or empty.", nameof(key));
+
+        if (predicate is null)
+            throw new ArgumentNullException(nameof(predicate));
+
+        return WhenError<TError>(e =>
+            e.Metadata.TryGetValue(key, out var metadataValue) &&
+            predicate(metadataValue));
+    }
+
+    /// <summary>
     /// Starts a rule that matches any failed result.
     /// </summary>
     public RuleBuilder WhenFailure()
