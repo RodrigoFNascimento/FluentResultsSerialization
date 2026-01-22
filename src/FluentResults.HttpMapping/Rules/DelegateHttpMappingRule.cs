@@ -10,22 +10,27 @@ internal sealed class DelegateHttpMappingRule : IHttpMappingRule
 {
     private readonly Func<HttpResultMappingContext, bool> _predicate;
     private readonly Func<HttpResultMappingContext, IResult> _mapper;
+    private readonly IReadOnlyList<HeaderDescriptor> _headers;
 
     public DelegateHttpMappingRule(
         Func<HttpResultMappingContext, bool> predicate,
-        Func<HttpResultMappingContext, IResult> mapper)
+        Func<HttpResultMappingContext, IResult> mapper,
+        IReadOnlyList<HeaderDescriptor> headers)
     {
         _predicate = predicate;
         _mapper = mapper;
+        _headers = headers;
     }
 
-    /// <inheritdoc />
     public bool Matches(HttpResultMappingContext context)
         => _predicate(context);
 
-    /// <inheritdoc />
     public IResult Map(HttpResultMappingContext context)
         => _mapper(context);
 
-    public IReadOnlyList<HeaderDescriptor> Headers { get; }
+    /// <summary>
+    /// Headers to apply to the HTTP response.
+    /// </summary>
+    public IReadOnlyList<HeaderDescriptor> Headers => _headers;
+
 }
