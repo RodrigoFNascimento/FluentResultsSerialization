@@ -7,4 +7,5 @@ internal sealed class ProblemRuleDefinition
     public Func<HttpResultMappingContext, string?>? Title { get; init; }
     public Func<HttpResultMappingContext, string?>? Detail { get; init; }
     public IReadOnlyList<HeaderDescriptor> Headers { get; init; }
+    public IReadOnlyList<ProblemExtensionDescriptor> Extensions { get; init; }
 }

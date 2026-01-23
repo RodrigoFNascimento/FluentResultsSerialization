@@ -15,6 +15,7 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
     private readonly Func<HttpResultMappingContext, string?>? _title;
     private readonly Func<HttpResultMappingContext, string?>? _detail;
     private readonly IReadOnlyList<HeaderDescriptor> _headers;
+    private readonly IReadOnlyList<ProblemExtensionDescriptor> _extensions;
 
     /// <summary>
     /// Creates a problem mapping rule.
@@ -24,13 +25,15 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
         HttpStatusCode status,
         Func<HttpResultMappingContext, string?>? title,
         Func<HttpResultMappingContext, string?>? detail,
-        IReadOnlyList<HeaderDescriptor> headers)
+        IReadOnlyList<HeaderDescriptor> headers,
+        IReadOnlyList<ProblemExtensionDescriptor> extensions)
     {
         _predicate = predicate;
         _status = status;
         _title = title;
         _detail = detail;
         _headers = headers;
+        _extensions = extensions;
     }
 
     /// <summary>
@@ -47,9 +50,24 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
         return Results.Problem(
             statusCode: (int)_status,
             title: _title?.Invoke(context),
-            detail: _detail?.Invoke(context)
+            detail: _detail?.Invoke(context),
+            extensions: BuildExtensions(context)
         );
     }
 
     public IReadOnlyList<HeaderDescriptor> Headers => _headers;
+
+    private IDictionary<string, object?>? BuildExtensions(
+    HttpResultMappingContext context)
+    {
+        if (_extensions.Count == 0)
+            return null;
+
+        var dict = new Dictionary<string, object?>();
+
+        foreach (var ext in _extensions)
+            dict[ext.Name] = ext.ValueFactory(context);
+
+        return dict;
+    }
 }

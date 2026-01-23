@@ -13,6 +13,7 @@ public sealed class ProblemRuleBuilder
     private string? _title;
     private Func<HttpResultMappingContext, string?>? _detail;
     private readonly List<HeaderDescriptor> _headers = new();
+    private readonly List<ProblemExtensionDescriptor> _extensions = new();
 
     /// <summary>
     /// Sets the HTTP status code.
@@ -53,6 +54,65 @@ public sealed class ProblemRuleBuilder
         return this;
     }
 
+    /// <summary>
+    /// Adds a standard "errors" extension for validation failures.
+    /// Intended for 400 Bad Request responses.
+    /// </summary>
+    public ProblemRuleBuilder WithErrors(
+        Func<HttpResultMappingContext, IDictionary<string, string[]>> factory)
+    {
+        return WithExtension("errors", ctx => factory(ctx));
+    }
+
+    /// <summary>
+    /// Adds a Problem Details extension member.
+    /// </summary>
+    public ProblemRuleBuilder WithExtension(
+        string name,
+        Func<HttpResultMappingContext, object?> valueFactory)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Extension name cannot be null or empty.", nameof(name));
+
+        if (valueFactory is null)
+            throw new ArgumentNullException(nameof(valueFactory));
+
+        _extensions.Add(new ProblemExtensionDescriptor(name, valueFactory));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a standard "errors" extension for validation failures
+    /// from the Error metadata.
+    /// Intended for 400 Bad Request responses.
+    /// </summary>
+    public ProblemRuleBuilder WithValidationErrorsFromMetadata(
+        string fieldMetadataKey = "errors")
+    {
+        return WithErrors(ctx =>
+        {
+            return ctx.Result.Errors
+                .SelectMany(error =>
+                {
+                    if (!error.Metadata.TryGetValue(fieldMetadataKey, out var field) ||
+                        field is null)
+                    {
+                        return Enumerable.Empty<(string Field, string Message)>();
+                    }
+
+                    return new[]
+                    {
+                    (Field: field.ToString()!, Message: error.Message)
+                    };
+                })
+                .GroupBy(x => x.Field)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.Message).ToArray()
+                );
+        });
+    }
+
     internal ProblemRuleDefinition Build()
     {
         return new ProblemRuleDefinition
@@ -60,7 +120,8 @@ public sealed class ProblemRuleBuilder
             Status = _status ?? HttpStatusCode.InternalServerError,
             Title = _title is null ? null : _ => _title,
             Detail = _detail,
-            Headers = _headers.ToList()
+            Headers = _headers.ToList(),
+            Extensions = _extensions.ToList()
         };
     }
 }
