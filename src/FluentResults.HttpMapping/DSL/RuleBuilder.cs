@@ -12,6 +12,8 @@ public sealed class RuleBuilder
     private readonly Func<HttpResultMappingContext, bool> _predicate;
     private readonly Action<IHttpMappingRule> _commit;
     private readonly List<HeaderDescriptor> _headers = new();
+    private readonly List<ProblemExtensionDescriptor> _extensions = new();
+    private string? _name;
 
     internal RuleBuilder(
         Func<HttpResultMappingContext, bool> predicate,
@@ -32,9 +34,19 @@ public sealed class RuleBuilder
         var rule = new DelegateHttpMappingRule(
             _predicate,
             mapper,
-            _headers.ToList()
+            _headers.ToList(),
+            _name
         );
         _commit(rule);
+    }
+
+    /// <summary>
+    /// Names the rule.
+    /// </summary>
+    public RuleBuilder Named(string name)
+    {
+        _name = name;
+        return this;
     }
 
     /// <summary>
@@ -55,7 +67,9 @@ public sealed class RuleBuilder
             definition.Status,
             definition.Title,
             definition.Detail,
-            definition.Headers
+            definition.Headers,
+            _extensions,
+            _name
         );
 
         _commit(rule);
@@ -71,5 +85,4 @@ public sealed class RuleBuilder
         _headers.Add(new HeaderDescriptor(name, valueFactory));
         return this;
     }
-
 }

@@ -1,7 +1,9 @@
 ﻿using FluentResults;
 using FluentResults.HttpMapping.Context;
+using FluentResults.HttpMapping.DSL;
 using FluentResults.HttpMapping.Rules;
 using Microsoft.AspNetCore.Http;
+using System.Xml.Linq;
 
 namespace FluentResults.HttpMapping.Rules;
 
@@ -10,6 +12,13 @@ namespace FluentResults.HttpMapping.Rules;
 /// </summary>
 internal sealed class SuccessHttpMappingRule : IHttpMappingRule
 {
+    public string? Name { get; }
+
+    public SuccessHttpMappingRule(string? name = null)
+    {
+        Name = name;
+    }
+
     /// <summary>
     /// Matches when the result represents success.
     /// </summary>

@@ -39,4 +39,9 @@ public interface IHttpMappingRule
     /// Headers produced by this rule.
     /// </summary>
     IReadOnlyList<HeaderDescriptor> Headers { get; }
+
+    /// <summary>
+    /// The name of this rule.
+    /// </summary>
+    string? Name { get; }
 }

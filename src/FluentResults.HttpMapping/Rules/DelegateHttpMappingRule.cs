@@ -15,11 +15,13 @@ internal sealed class DelegateHttpMappingRule : IHttpMappingRule
     public DelegateHttpMappingRule(
         Func<HttpResultMappingContext, bool> predicate,
         Func<HttpResultMappingContext, IResult> mapper,
-        IReadOnlyList<HeaderDescriptor> headers)
+        IReadOnlyList<HeaderDescriptor> headers,
+        string? name)
     {
         _predicate = predicate;
         _mapper = mapper;
         _headers = headers;
+        Name = name;
     }
 
     public bool Matches(HttpResultMappingContext context)
@@ -33,4 +35,5 @@ internal sealed class DelegateHttpMappingRule : IHttpMappingRule
     /// </summary>
     public IReadOnlyList<HeaderDescriptor> Headers => _headers;
 
+    public string? Name { get; }
 }

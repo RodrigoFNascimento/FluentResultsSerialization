@@ -26,7 +26,8 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
         Func<HttpResultMappingContext, string?>? title,
         Func<HttpResultMappingContext, string?>? detail,
         IReadOnlyList<HeaderDescriptor> headers,
-        IReadOnlyList<ProblemExtensionDescriptor> extensions)
+        IReadOnlyList<ProblemExtensionDescriptor> extensions,
+        string? name)
     {
         _predicate = predicate;
         _status = status;
@@ -34,6 +35,7 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
         _detail = detail;
         _headers = headers;
         _extensions = extensions;
+        Name = name;
     }
 
     /// <summary>
@@ -57,8 +59,10 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
 
     public IReadOnlyList<HeaderDescriptor> Headers => _headers;
 
+    public string? Name { get; }
+
     private IDictionary<string, object?>? BuildExtensions(
-    HttpResultMappingContext context)
+        HttpResultMappingContext context)
     {
         if (_extensions.Count == 0)
             return null;

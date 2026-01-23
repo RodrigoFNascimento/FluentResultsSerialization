@@ -18,7 +18,7 @@ internal sealed class HttpMappingRuleSet : IHttpMappingRuleSet
     public HttpMappingRuleSet(IEnumerable<IHttpMappingRule> rules)
     {
         _rules = rules
-            .Concat(new[] { new SuccessHttpMappingRule() })
+            .Concat(new[] { new SuccessHttpMappingRule("default-success") })
             .ToList();
     }
 
@@ -31,6 +31,9 @@ internal sealed class HttpMappingRuleSet : IHttpMappingRuleSet
         {
             if (!rule.Matches(context))
                 continue;
+
+            context.HttpContext.Items["FluentResults.HttpMapping.RuleName"] =
+                rule.Name ?? rule.GetType().Name;
 
             var result = rule.Map(context);
 
