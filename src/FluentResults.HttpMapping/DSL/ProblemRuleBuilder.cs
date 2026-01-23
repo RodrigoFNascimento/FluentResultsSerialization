@@ -34,6 +34,16 @@ public sealed class ProblemRuleBuilder
     }
 
     /// <summary>
+    /// Sets the problem detail.
+    /// </summary>
+    public ProblemRuleBuilder WithDetail(
+        string detail)
+    {
+        WithDetail(_ => detail);
+        return this;
+    }
+    
+    /// <summary>
     /// Sets the problem detail dynamically.
     /// </summary>
     public ProblemRuleBuilder WithDetail(
@@ -43,6 +53,17 @@ public sealed class ProblemRuleBuilder
         return this;
     }
 
+    /// <summary>
+    /// Adds an HTTP header to the problem response.
+    /// </summary>
+    public ProblemRuleBuilder WithHeader(
+        string name,
+        string? value)
+    {
+        WithHeader(name, _ => value);
+        return this;
+    }
+    
     /// <summary>
     /// Adds an HTTP header to the problem response.
     /// </summary>
@@ -125,7 +146,7 @@ public sealed class ProblemRuleBuilder
 
         WithTitle(title);
 
-        WithDetail(_ => detail);
+        WithDetail(detail);
 
         WithValidationErrorsFromMetadata(fieldMetadataKey);
 
