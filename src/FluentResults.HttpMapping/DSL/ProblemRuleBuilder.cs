@@ -113,6 +113,25 @@ public sealed class ProblemRuleBuilder
         });
     }
 
+    /// <summary>
+    /// Helper method for composing a full validation Problem Details.
+    /// </summary>
+    public ProblemRuleBuilder WithValidationProblem(
+        string title = "Invalid request data.",
+        string detail = "One or more validation errors occurred.",
+        string fieldMetadataKey = "errors")
+    {
+        WithStatus(HttpStatusCode.BadRequest);
+
+        WithTitle(title);
+
+        WithDetail(_ => detail);
+
+        WithValidationErrorsFromMetadata(fieldMetadataKey);
+
+        return this;
+    }
+
     internal ProblemRuleDefinition Build()
     {
         return new ProblemRuleDefinition
