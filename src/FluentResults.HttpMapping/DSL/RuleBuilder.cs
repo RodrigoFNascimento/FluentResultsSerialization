@@ -80,6 +80,17 @@ public sealed class RuleBuilder
     /// </summary>
     public RuleBuilder WithHeader(
         string name,
+        string? value)
+    {
+        WithHeader(name, _ => value);
+        return this;
+    }
+    
+    /// <summary>
+    /// Adds an HTTP header to the mapped response.
+    /// </summary>
+    public RuleBuilder WithHeader(
+        string name,
         Func<HttpResultMappingContext, string?> valueFactory)
     {
         _headers.Add(new HeaderDescriptor(name, valueFactory));
