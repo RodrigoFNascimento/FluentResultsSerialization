@@ -11,7 +11,6 @@ public sealed class ProblemRuleBuilder
     private HttpStatusCode? _status;
     private string? _title;
     private Func<HttpResultMappingContext, string?>? _detail;
-    private readonly List<HeaderDescriptor> _headers = new();
     private readonly List<ProblemExtensionDescriptor> _extensions = new();
 
     /// <summary>
@@ -49,28 +48,6 @@ public sealed class ProblemRuleBuilder
         Func<HttpResultMappingContext, string?> detail)
     {
         _detail = detail;
-        return this;
-    }
-
-    /// <summary>
-    /// Adds an HTTP header to the problem response.
-    /// </summary>
-    public ProblemRuleBuilder WithHeader(
-        string name,
-        string? value)
-    {
-        WithHeader(name, _ => value);
-        return this;
-    }
-    
-    /// <summary>
-    /// Adds an HTTP header to the problem response.
-    /// </summary>
-    public ProblemRuleBuilder WithHeader(
-        string name,
-        Func<HttpResultMappingContext, string?> valueFactory)
-    {
-        _headers.Add(new HeaderDescriptor(name, valueFactory));
         return this;
     }
 
@@ -159,7 +136,6 @@ public sealed class ProblemRuleBuilder
             Status = _status ?? HttpStatusCode.InternalServerError,
             Title = _title is null ? null : _ => _title,
             Detail = _detail,
-            Headers = _headers.ToList(),
             Extensions = _extensions.ToList()
         };
     }
