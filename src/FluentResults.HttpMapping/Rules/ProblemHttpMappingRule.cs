@@ -16,6 +16,8 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
     private readonly IReadOnlyList<HeaderDescriptor> _headers;
     private readonly IReadOnlyList<ProblemExtensionDescriptor> _extensions;
 
+    public string? Name { get; }
+
     /// <summary>
     /// Creates a problem mapping rule.
     /// </summary>
@@ -57,8 +59,6 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
     }
 
     public IReadOnlyList<HeaderDescriptor> Headers => _headers;
-
-    public string? Name { get; }
 
     private IDictionary<string, object?>? BuildExtensions(
         HttpResultMappingContext context)

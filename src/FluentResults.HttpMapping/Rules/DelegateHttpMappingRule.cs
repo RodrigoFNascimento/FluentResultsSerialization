@@ -12,6 +12,8 @@ internal sealed class DelegateHttpMappingRule : IHttpMappingRule
     private readonly Func<HttpResultMappingContext, IResult> _mapper;
     private readonly IReadOnlyList<HeaderDescriptor> _headers;
 
+    public string? Name { get; }
+
     public DelegateHttpMappingRule(
         Func<HttpResultMappingContext, bool> predicate,
         Func<HttpResultMappingContext, IResult> mapper,
@@ -34,6 +36,4 @@ internal sealed class DelegateHttpMappingRule : IHttpMappingRule
     /// Headers to apply to the HTTP response.
     /// </summary>
     public IReadOnlyList<HeaderDescriptor> Headers => _headers;
-
-    public string? Name { get; }
 }

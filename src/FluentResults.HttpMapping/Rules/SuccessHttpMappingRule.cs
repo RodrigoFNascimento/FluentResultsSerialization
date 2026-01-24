@@ -10,6 +10,9 @@ internal sealed class SuccessHttpMappingRule : IHttpMappingRule
 {
     public string? Name { get; }
 
+    public IReadOnlyList<HeaderDescriptor> Headers { get; }
+        = Array.Empty<HeaderDescriptor>();
+
     public SuccessHttpMappingRule(string? name = null)
     {
         Name = name;
@@ -43,7 +46,4 @@ internal sealed class SuccessHttpMappingRule : IHttpMappingRule
         // Result → 204 No Content
         return Results.NoContent();
     }
-
-    public IReadOnlyList<HeaderDescriptor> Headers { get; }
-        = Array.Empty<HeaderDescriptor>();
 }

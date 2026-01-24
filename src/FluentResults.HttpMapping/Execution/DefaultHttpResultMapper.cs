@@ -27,7 +27,6 @@ public sealed class DefaultHttpResultMapper : IHttpResultMapper
         _ruleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
     }
 
-    /// <inheritdoc />
     public IResult Map(Result result)
     {
         if (result is null)
@@ -37,7 +36,6 @@ public sealed class DefaultHttpResultMapper : IHttpResultMapper
         return _ruleSet.Execute(context);
     }
 
-    /// <inheritdoc />
     public IResult Map<T>(Result<T> result)
     {
         if (result is null)

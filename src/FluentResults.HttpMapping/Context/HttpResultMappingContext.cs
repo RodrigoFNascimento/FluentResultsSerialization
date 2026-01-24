@@ -15,6 +15,11 @@ namespace FluentResults.HttpMapping.Context;
 public sealed class HttpResultMappingContext
 {
     /// <summary>
+    /// The current ASP.NET HTTP context.
+    /// </summary>
+    public HttpContext HttpContext { get; }
+
+    /// <summary>
     /// The underlying FluentResults result returned by the endpoint.
     /// </summary>
     public IResultBase Result { get; }
@@ -86,9 +91,4 @@ public sealed class HttpResultMappingContext
     {
         Headers[name] = values;
     }
-
-    /// <summary>
-    /// The current ASP.NET HTTP context.
-    /// </summary>
-    public HttpContext HttpContext { get; }
 }

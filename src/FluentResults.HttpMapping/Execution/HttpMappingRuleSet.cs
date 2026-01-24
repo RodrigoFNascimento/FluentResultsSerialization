@@ -51,5 +51,4 @@ internal sealed class HttpMappingRuleSet : IHttpMappingRuleSet
         throw new InvalidOperationException(
             "No HTTP mapping rule matched the result.");
     }
-
 }

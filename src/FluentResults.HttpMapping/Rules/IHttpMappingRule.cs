@@ -18,6 +18,16 @@ namespace FluentResults.HttpMapping.Rules;
 public interface IHttpMappingRule
 {
     /// <summary>
+    /// Headers produced by this rule.
+    /// </summary>
+    IReadOnlyList<HeaderDescriptor> Headers { get; }
+
+    /// <summary>
+    /// The name of this rule.
+    /// </summary>
+    string? Name { get; }
+
+    /// <summary>
     /// Determines whether this rule applies to the given mapping context.
     /// </summary>
     /// <param name="context">The mapping context.</param>
@@ -34,14 +44,4 @@ public interface IHttpMappingRule
     /// <param name="context">The mapping context.</param>
     /// <returns>An ASP.NET HTTP result.</returns>
     IResult Map(HttpResultMappingContext context);
-
-    /// <summary>
-    /// Headers produced by this rule.
-    /// </summary>
-    IReadOnlyList<HeaderDescriptor> Headers { get; }
-
-    /// <summary>
-    /// The name of this rule.
-    /// </summary>
-    string? Name { get; }
 }
