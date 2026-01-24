@@ -32,16 +32,18 @@ internal sealed class HttpMappingRuleSet : IHttpMappingRuleSet
             if (!rule.Matches(context))
                 continue;
 
-            context.HttpContext.Items["FluentResults.HttpMapping.RuleName"] =
-                rule.Name ?? rule.GetType().Name;
+            if (context.HttpContext is not null)
+                context.HttpContext.Items["FluentResults.HttpMapping.RuleName"] =
+                    rule.Name ?? rule.GetType().Name;
 
             var result = rule.Map(context);
 
             // Apply collected headers
             foreach (var header in context.Headers)
             {
-                context.HttpContext.Response.Headers[header.Key] =
-                    new Microsoft.Extensions.Primitives.StringValues(header.Value);
+                if (context.HttpContext is not null)
+                    context.HttpContext.Response.Headers[header.Key] =
+                        new Microsoft.Extensions.Primitives.StringValues(header.Value);
             }
 
             return result;
