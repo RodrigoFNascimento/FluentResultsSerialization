@@ -50,7 +50,7 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
     /// </summary>
     public IResult Map(HttpResultMappingContext context)
     {
-        return Results.Problem(
+        return Microsoft.AspNetCore.Http.Results.Problem(
             statusCode: (int)_status,
             title: _title?.Invoke(context),
             detail: _detail?.Invoke(context),

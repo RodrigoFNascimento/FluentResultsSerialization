@@ -62,12 +62,16 @@ public sealed class RuleBuilder
 
         var definition = builder.Build();
 
+        var headers = _headers
+            .Concat(definition.Headers)
+            .ToList();
+
         var rule = new ProblemHttpMappingRule(
             _predicate,
             definition.Status,
             definition.Title,
             definition.Detail,
-            definition.Headers,
+            headers,
             _extensions,
             _name
         );

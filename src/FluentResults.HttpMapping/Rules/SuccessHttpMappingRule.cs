@@ -40,10 +40,10 @@ internal sealed class SuccessHttpMappingRule : IHttpMappingRule
                 .GetProperty("Value")!
                 .GetValue(result);
 
-            return Results.Ok(value);
+            return Microsoft.AspNetCore.Http.Results.Ok(value);
         }
 
         // Result → 204 No Content
-        return Results.NoContent();
+        return Microsoft.AspNetCore.Http.Results.NoContent();
     }
 }

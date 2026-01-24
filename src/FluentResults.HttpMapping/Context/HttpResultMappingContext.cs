@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace FluentResults.HttpMapping.Context;
 
@@ -17,8 +18,8 @@ public sealed class HttpResultMappingContext
     /// <summary>
     /// Headers to be applied to the HTTP response.
     /// </summary>
-    public IDictionary<string, string[]> Headers { get; }
-        = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+    public IDictionary<string, StringValues> Headers { get; }
+        = new Dictionary<string, StringValues>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// The current ASP.NET HTTP context.

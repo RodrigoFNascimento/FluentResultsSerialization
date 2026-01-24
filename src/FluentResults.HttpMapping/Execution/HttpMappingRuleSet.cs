@@ -1,6 +1,8 @@
 ﻿using FluentResults.HttpMapping.Context;
+using FluentResults.HttpMapping.Results;
 using FluentResults.HttpMapping.Rules;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace FluentResults.HttpMapping.Execution;
 
@@ -31,21 +33,21 @@ internal sealed class HttpMappingRuleSet : IHttpMappingRuleSet
             if (!rule.Matches(context))
                 continue;
 
-            if (context.HttpContext is not null)
-                context.HttpContext.Items["FluentResults.HttpMapping.RuleName"] =
-                    rule.Name ?? rule.GetType().Name;
-
             var result = rule.Map(context);
 
-            // Apply collected headers
-            foreach (var header in context.Headers)
+            Dictionary<string, StringValues> headers = new();
+            
+            foreach (var header in rule.Headers)
             {
-                if (context.HttpContext is not null)
-                    context.HttpContext.Response.Headers[header.Key] =
-                        new Microsoft.Extensions.Primitives.StringValues(header.Value);
+                var value = header.ValueFactory(context);
+
+                if (value is null)
+                    continue;
+
+                headers.Add(header.Name, new string?[] { value });
             }
 
-            return result;
+            return result.WithHeaders(headers);
         }
 
         throw new InvalidOperationException(
