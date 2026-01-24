@@ -1,7 +1,6 @@
 ﻿using FluentResults.HttpMapping.Context;
 using FluentResults.HttpMapping.Execution;
 using FluentResults.HttpMapping.Rules;
-using Microsoft.AspNetCore.Routing;
 
 namespace FluentResults.HttpMapping.DSL;
 

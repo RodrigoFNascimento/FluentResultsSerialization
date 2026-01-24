@@ -1,5 +1,4 @@
-﻿using FluentResults;
-using FluentResults.HttpMapping.Context;
+﻿using FluentResults.HttpMapping.Context;
 using Microsoft.AspNetCore.Http;
 
 namespace FluentResults.HttpMapping.Execution;

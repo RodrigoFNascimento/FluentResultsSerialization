@@ -1,9 +1,5 @@
-﻿using FluentResults;
-using FluentResults.HttpMapping.Context;
-using FluentResults.HttpMapping.DSL;
-using FluentResults.HttpMapping.Rules;
+﻿using FluentResults.HttpMapping.Context;
 using Microsoft.AspNetCore.Http;
-using System.Xml.Linq;
 
 namespace FluentResults.HttpMapping.Rules;
 

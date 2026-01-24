@@ -1,5 +1,4 @@
-﻿using FluentResults;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace FluentResults.HttpMapping.Context;
 
@@ -7,7 +6,7 @@ namespace FluentResults.HttpMapping.Context;
 /// Immutable context object passed to HTTP mapping rules.
 /// 
 /// It represents a snapshot of a <see cref="FluentResults.Result"/> or
-/// <see cref="FluentResults.Result{T}"/> after an endpoint has executed,
+/// <see cref="Result{T}"/> after an endpoint has executed,
 /// exposing only the data that mapping rules are allowed to inspect.
 /// 
 /// This type is intentionally pure and contains no ASP.NET dependencies,

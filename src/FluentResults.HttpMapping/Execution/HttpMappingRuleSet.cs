@@ -1,7 +1,6 @@
 ﻿using FluentResults.HttpMapping.Context;
 using FluentResults.HttpMapping.Rules;
 using Microsoft.AspNetCore.Http;
-using System.Linq;
 
 namespace FluentResults.HttpMapping.Execution;
 

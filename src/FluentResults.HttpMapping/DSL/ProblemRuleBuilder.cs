@@ -1,5 +1,4 @@
 ﻿using FluentResults.HttpMapping.Context;
-using Microsoft.AspNetCore.Http;
 using System.Net;
 
 namespace FluentResults.HttpMapping.DSL;
