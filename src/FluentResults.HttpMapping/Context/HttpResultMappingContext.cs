@@ -47,6 +47,16 @@ public sealed class HttpResultMappingContext
     }
 
     /// <summary>
+    /// Gets the first reason by metadata key.
+    /// </summary>
+    public TReason FirstReasonWithMetadata<TReason>(string key)
+        where TReason : IReason
+    {
+        return Result.Reasons.OfType<TReason>()
+            .First(error => error.HasMetadataKey(key));
+    }
+
+    /// <summary>
     /// Gets the first reason of type <typeparamref name="TReason"/>
     /// attached to the result.
     /// </summary>
