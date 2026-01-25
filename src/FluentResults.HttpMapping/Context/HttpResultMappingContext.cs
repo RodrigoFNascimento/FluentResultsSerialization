@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace FluentResults.HttpMapping.Context;
+﻿namespace FluentResults.HttpMapping.Context;
 
 /// <summary>
 /// Immutable context object passed to HTTP mapping rules.
@@ -14,11 +12,6 @@ namespace FluentResults.HttpMapping.Context;
 /// </summary>
 public sealed class HttpResultMappingContext
 {
-    /// <summary>
-    /// The current ASP.NET HTTP context.
-    /// </summary>
-    public HttpContext HttpContext { get; }
-
     /// <summary>
     /// The underlying FluentResults result returned by the endpoint.
     /// </summary>
@@ -54,17 +47,6 @@ public sealed class HttpResultMappingContext
     }
 
     /// <summary>
-    /// Determines whether any reason attached to the result contains
-    /// metadata with the specified key.
-    /// </summary>
-    /// <param name="key">The metadata key to look for.</param>
-    /// <returns>
-    /// <c>true</c> if at least one reason contains the key; otherwise, <c>false</c>.
-    /// </returns>
-    public bool HasMetadata(string key)
-        => Reasons.Any(r => r.Metadata.ContainsKey(key));
-
-    /// <summary>
     /// Retrieves all metadata values associated with the specified key
     /// across all reasons.
     /// </summary>
@@ -77,4 +59,15 @@ public sealed class HttpResultMappingContext
         => Reasons
             .Where(r => r.Metadata.ContainsKey(key))
             .Select(r => r.Metadata[key]);
+
+    /// <summary>
+    /// Determines whether any reason attached to the result contains
+    /// metadata with the specified key.
+    /// </summary>
+    /// <param name="key">The metadata key to look for.</param>
+    /// <returns>
+    /// <c>true</c> if at least one reason contains the key; otherwise, <c>false</c>.
+    /// </returns>
+    public bool HasMetadata(string key)
+        => Reasons.Any(r => r.Metadata.ContainsKey(key));
 }
