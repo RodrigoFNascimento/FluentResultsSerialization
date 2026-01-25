@@ -4,29 +4,94 @@ using Microsoft.AspNetCore.Http;
 namespace FluentResults.HttpMapping.Rules;
 
 /// <summary>
-/// Default rule that maps successful FluentResults to HTTP responses.
+/// Default HTTP mapping rule that converts successful FluentResults
+/// into conventional HTTP success responses.
 /// </summary>
+/// <remarks>
+/// This rule is automatically appended to the end of the rule set
+/// and acts as a fallback for successful results when no user-defined
+/// rule matches.
+///
+/// The mapping behavior follows common REST conventions:
+/// <list type="bullet">
+/// <item>
+/// <description>
+/// <see cref="Result{T}"/> is mapped to <c>200 OK</c> with the value
+/// serialized as the response body.
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// Non-generic <see cref="Result"/> is mapped to
+/// <c>204 No Content</c>.
+/// </description>
+/// </item>
+/// </list>
+///
+/// This rule produces no headers and has no side effects.
+/// </remarks>
 internal sealed class SuccessHttpMappingRule : IHttpMappingRule
 {
+    /// <summary>
+    /// Gets the optional name of the rule.
+    /// </summary>
     public string? Name { get; }
 
+    /// <summary>
+    /// Gets the headers produced by this rule.
+    /// This rule does not produce any headers.
+    /// </summary>
     public IReadOnlyList<HeaderDescriptor> Headers { get; }
         = Array.Empty<HeaderDescriptor>();
 
+    /// <summary>
+    /// Initializes a new <see cref="SuccessHttpMappingRule"/>.
+    /// </summary>
+    /// <param name="name">
+    /// Optional rule name, primarily intended for diagnostics
+    /// and observability.
+    /// </param>
     public SuccessHttpMappingRule(string? name = null)
     {
         Name = name;
     }
 
     /// <summary>
-    /// Matches when the result represents success.
+    /// Determines whether this rule applies to the given mapping context.
     /// </summary>
+    /// <param name="context">The mapping context.</param>
+    /// <returns>
+    /// <c>true</c> when the underlying result represents a successful
+    /// outcome; otherwise, <c>false</c>.
+    /// </returns>
     public bool Matches(HttpResultMappingContext context)
         => context.Result.IsSuccess;
 
     /// <summary>
-    /// Maps a successful result to an HTTP response.
+    /// Maps a successful FluentResults result to an HTTP response.
     /// </summary>
+    /// <param name="context">The mapping context.</param>
+    /// <returns>
+    /// An ASP.NET <see cref="IResult"/> representing a successful
+    /// HTTP response.
+    /// </returns>
+    /// <remarks>
+    /// The mapping behavior is type-based:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// <see cref="Result{T}"/> is mapped to <c>200 OK</c> with
+    /// the contained value as the response body.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Non-generic <see cref="Result"/> is mapped to
+    /// <c>204 No Content</c>.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
     public IResult Map(HttpResultMappingContext context)
     {
         var result = context.Result;
