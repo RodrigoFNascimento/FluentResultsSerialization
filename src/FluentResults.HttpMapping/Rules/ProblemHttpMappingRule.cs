@@ -1,4 +1,5 @@
 ﻿using FluentResults.HttpMapping.Context;
+using FluentResults.HttpMapping.DSL;
 using Microsoft.AspNetCore.Http;
 using System.Net;
 
@@ -10,7 +11,7 @@ namespace FluentResults.HttpMapping.Rules;
 /// </summary>
 /// <remarks>
 /// This rule is typically produced by the DSL through
-/// <see cref="FluentResults.HttpMapping.DSL.RuleBuilder.Problem"/>,
+/// <see cref="RuleBuilder.Problem"/>,
 /// and is intended to handle failure cases in a standardized,
 /// interoperable way.
 ///
@@ -49,9 +50,6 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
     private readonly IReadOnlyList<HeaderDescriptor> _headers;
     private readonly IReadOnlyList<ProblemExtensionDescriptor> _extensions;
 
-    /// <summary>
-    /// Gets the optional name of the rule.
-    /// </summary>
     public string? Name { get; }
 
     /// <summary>
@@ -100,26 +98,9 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
         Name = name;
     }
 
-    /// <summary>
-    /// Determines whether this rule applies to the given mapping context.
-    /// </summary>
-    /// <param name="context">The mapping context.</param>
-    /// <returns>
-    /// <c>true</c> if the predicate evaluates to <c>true</c>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
     public bool Matches(HttpResultMappingContext context)
         => _predicate(context);
 
-    /// <summary>
-    /// Maps the given context to an RFC 7807 Problem Details response.
-    /// </summary>
-    /// <param name="context">The mapping context.</param>
-    /// <returns>An ASP.NET <see cref="IResult"/> representing the problem.</returns>
-    /// <remarks>
-    /// Title, detail, and extensions are evaluated lazily
-    /// at execution time using the provided context.
-    /// </remarks>
     public IResult Map(HttpResultMappingContext context)
     {
         return Microsoft.AspNetCore.Http.Results.Problem(
@@ -130,9 +111,6 @@ internal sealed class ProblemHttpMappingRule : IHttpMappingRule
         );
     }
 
-    /// <summary>
-    /// Gets the headers produced by this rule.
-    /// </summary>
     public IReadOnlyList<HeaderDescriptor> Headers => _headers;
 
     private IDictionary<string, object?>? BuildExtensions(

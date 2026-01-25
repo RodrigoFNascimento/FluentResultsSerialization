@@ -40,16 +40,6 @@ internal sealed class HeaderResult : IResult
         _headers = headers ?? throw new ArgumentNullException(nameof(headers));
     }
 
-    /// <summary>
-    /// Executes the inner result after adding the configured headers
-    /// to the HTTP response.
-    /// </summary>
-    /// <param name="httpContext">
-    /// The current HTTP context.
-    /// </param>
-    /// <returns>
-    /// A task that represents the asynchronous execution operation.
-    /// </returns>
     public async Task ExecuteAsync(HttpContext httpContext)
     {
         if (httpContext is null)

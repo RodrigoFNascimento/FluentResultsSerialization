@@ -1,13 +1,13 @@
 ﻿using FluentResults.HttpMapping.Context;
+using FluentResults.HttpMapping.DSL;
 using System.Net;
-using System.Security.Cryptography;
 
 /// <summary>
 /// Internal immutable definition of an RFC 7807 problem mapping rule.
 ///
 /// <para>
 /// This type represents the fully materialized configuration produced by
-/// <see cref="DSL.ProblemRuleBuilder"/>. It contains only resolved delegates
+/// <see cref="ProblemRuleBuilder"/>. It contains only resolved delegates
 /// and values required at execution time.
 /// </para>
 ///

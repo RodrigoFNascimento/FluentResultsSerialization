@@ -42,23 +42,6 @@ internal sealed class HttpMappingRuleSet : IHttpMappingRuleSet
             .ToList();
     }
 
-    /// <summary>
-    /// Executes the first matching rule against the given mapping context.
-    /// </summary>
-    /// <param name="context">
-    /// The mapping context created from a FluentResults result.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IResult"/> representing the mapped HTTP response,
-    /// with any headers defined by the matched rule applied.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown when <paramref name="context"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when no mapping rule matches the given context.
-    /// This indicates a misconfiguration of the rule set.
-    /// </exception>
     public IResult Execute(HttpResultMappingContext context)
     {
         if (context is null)

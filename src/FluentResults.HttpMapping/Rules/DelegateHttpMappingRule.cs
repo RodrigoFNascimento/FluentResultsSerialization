@@ -1,4 +1,5 @@
 ﻿using FluentResults.HttpMapping.Context;
+using FluentResults.HttpMapping.DSL;
 using Microsoft.AspNetCore.Http;
 
 namespace FluentResults.HttpMapping.Rules;
@@ -13,7 +14,7 @@ namespace FluentResults.HttpMapping.Rules;
 /// the corresponding <see cref="IResult"/>.
 ///
 /// Instances of this rule are typically created by the DSL layer
-/// (<see cref="FluentResults.HttpMapping.DSL.RuleBuilder"/>).
+/// (<see cref="RuleBuilder"/>).
 /// </remarks>
 internal sealed class DelegateHttpMappingRule : IHttpMappingRule
 {

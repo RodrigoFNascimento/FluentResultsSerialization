@@ -42,7 +42,7 @@ public static class ServiceCollectionExtensions
     /// <item>
     /// <description>
     /// A singleton <see cref="IHttpResultMapper"/> that endpoints can
-    /// use to map <see cref="FluentResults.Result"/> values to HTTP responses.
+    /// use to map <see cref="Result"/> values to HTTP responses.
     /// </description>
     /// </item>
     /// </list>
