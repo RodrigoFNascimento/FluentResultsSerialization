@@ -47,6 +47,16 @@ public sealed class HttpResultMappingContext
     }
 
     /// <summary>
+    /// Gets the first reason of type <typeparamref name="TReason"/>
+    /// attached to the result.
+    /// </summary>
+    public TReason FirstReason<TReason>()
+        where TReason : IReason
+    {
+        return Result.Reasons.OfType<TReason>().First();
+    }
+
+    /// <summary>
     /// Retrieves all metadata values associated with the specified key
     /// across all reasons.
     /// </summary>
@@ -59,6 +69,16 @@ public sealed class HttpResultMappingContext
         => Reasons
             .Where(r => r.Metadata.ContainsKey(key))
             .Select(r => r.Metadata[key]);
+
+    /// <summary>
+    /// Gets all reasons of type <typeparamref name="TReason"/>
+    /// attached to the result.
+    /// </summary>
+    public IEnumerable<TReason> GetReasons<TReason>()
+        where TReason : IReason
+    {
+        return Result.Reasons.OfType<TReason>();
+    }
 
     /// <summary>
     /// Determines whether any reason attached to the result contains
