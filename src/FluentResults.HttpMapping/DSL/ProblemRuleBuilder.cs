@@ -119,15 +119,41 @@ public sealed class ProblemRuleBuilder
         string fieldMetadataKey = "errors")
     {
         WithStatus(HttpStatusCode.BadRequest);
-
         WithTitle(title);
-
         WithDetail(detail);
-
         WithValidationErrorsFromMetadata(fieldMetadataKey);
 
         return this;
     }
+
+    /// <summary>
+    /// Helper method for composing a full validation Problem Details.
+    /// </summary>
+    public ProblemRuleBuilder WithValidationProblem<TValidationError>(
+        Func<TValidationError, IDictionary<string, string[]>> errorsSelector,
+        string title = "Invalid request data.",
+        string detail = "One or more validation errors occurred.")
+        where TValidationError : IReason
+    {
+        if (errorsSelector is null)
+            throw new ArgumentNullException(nameof(errorsSelector));
+
+        WithStatus(HttpStatusCode.BadRequest);
+        WithTitle(title);
+        WithDetail(detail);
+
+        WithErrors(ctx =>
+        {
+            var error = ctx.Result.Reasons
+                .OfType<TValidationError>()
+                .First();
+
+            return errorsSelector(error);
+        });
+
+        return this;
+    }
+
 
     internal ProblemRuleDefinition Build()
     {
