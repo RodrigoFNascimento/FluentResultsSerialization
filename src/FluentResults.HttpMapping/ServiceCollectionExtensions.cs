@@ -63,7 +63,7 @@ public static class ServiceCollectionExtensions
         var builder = new HttpResultMappingBuilder();
         configure(builder);
 
-        services.AddSingleton<IHttpMappingRuleSet>(builder.Build());
+        services.AddSingleton(builder.Build());
         services.AddSingleton<IHttpResultMapper, DefaultHttpResultMapper>();
 
         return services;
