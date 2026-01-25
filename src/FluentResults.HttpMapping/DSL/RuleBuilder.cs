@@ -12,7 +12,6 @@ public sealed class RuleBuilder
     private readonly Func<HttpResultMappingContext, bool> _predicate;
     private readonly Action<IHttpMappingRule> _commit;
     private readonly List<HeaderDescriptor> _headers = new();
-    private readonly List<ProblemExtensionDescriptor> _extensions = new();
     private string? _name;
 
     internal RuleBuilder(
@@ -68,7 +67,7 @@ public sealed class RuleBuilder
             definition.Title,
             definition.Detail,
             _headers,
-            _extensions,
+            definition.Extensions,
             _name
         );
 
