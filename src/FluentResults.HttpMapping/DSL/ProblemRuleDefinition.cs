@@ -41,5 +41,5 @@ internal sealed class ProblemRuleDefinition
     /// The collection of Problem Details extension members to be included
     /// in the response.
     /// </summary>
-    public IReadOnlyList<ProblemExtensionDescriptor> Extensions { get; init; }
+    public IReadOnlyList<ProblemExtensionDescriptor> Extensions { get; init; } = new List<ProblemExtensionDescriptor>();
 }
