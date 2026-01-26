@@ -1,285 +1,253 @@
-# FluentResultsSerialization
+# FluentResults.HttpMapping
 
-Serializes [FluentResults](https://github.com/altmann/FluentResults) into [IResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.iresult?view=aspnetcore-8.0).
+**FluentResults.HttpMapping** is a small, opinionated library that bridges 
+[FluentResults](https://github.com/altmann/FluentResults) with ASP.NET Minimal APIs.
 
-## About
+It lets you map `Result` and `Result<T>` to HTTP responses **declaratively**, **consistently**, and **without leaking HTTP concerns into your domain layer**.
 
-Manually converting a `Result` to an `IResult` can result in code that's harder to read and lacks consistency. For example:
+
+## The problem this package solves
+
+When using **FluentResults** in Web APIs, a common problem quickly appears:
+
+- Domain code returns rich `Result` objects;
+- HTTP endpoints must translate those results into status codes, headers, and bodies;
+- Mapping logic ends up:
+  - Repeated across endpoints;
+  - Tightly coupled to ASP.NET;
+  - Hard to evolve consistently;
+
+Typical symptoms:
+
+- `if (result.IsFailed)` blocks everywhere;
+- Ad-hoc mapping of errors to status codes;
+- Validation, authorization, and infrastructure errors mixed together;
+- Inconsistent error responses across endpoints;
+
+**FluentResults.HttpMapping** solves this by introducing a **centralized mapping layer**:
+
+- Endpoints return `Result` / `Result<T>`;
+- A rule-based DSL decides how results become HTTP responses;
+- HTTP behavior is defined once, globally, and reused everywhere;
+
+
+## Design philosophy
+
+This package is intentionally **small and strict**.
+
+Core principles:
+
+- **Separation of concerns**
+  - Domain logic knows nothing about HTTP;
+  - HTTP mapping lives in one place;
+- **Declarative rules**
+  - You describe *what* should happen, not *how*;
+- **First match wins**
+  - Rules are evaluated in order;
+- **Pure mapping**
+  - No dependency injection inside rules;
+  - No side effects;
+- **Minimal API first**
+  - Designed for `IResult` and `Results.*`;
+
+This is not a framework.  
+It’s a thin, predictable mapping layer.
+
+
+## Installation
+
+```bash
+dotnet add package FluentResults.HttpMapping
+```
+
+
+## Basic usage
+
+### 1. Register the mapper
+
+Configure your mapping rules once at startup:
 
 ```csharp
-app.MapGet("/user", (IUserService userService) =>
+builder.Services.AddHttpResultMapping(mapper =>
 {
-    var result = myService.GetUser();
-
-    // You always need to check the result.
-    if (result.IsFailed)
-        return Results.Ok(Array.Empty<User>());
-
-    // HTTP status codes are explicitly defined in every endpoint,
-    // leading to potential inconsistency.
-    return Results.Ok(result.Value);
+    mapper
+        .WhenFailure()
+        .Problem(p => p
+            .WithStatus(System.Net.HttpStatusCode.InternalServerError)
+            .WithTitle("Unexpected failure"));
 });
 ```
 
-This package simplifies and standardizes HTTP response generation from `Result` (from [FluentResults](https://github.com/altmann/FluentResults)) using a simple interface and fluent configuration.
+
+### 2. Inject and use in endpoints
+
+Endpoints simply return `Result` objects:
 
 ```csharp
-app.MapPost("/user", (IResultSerializer serializer, IUserService userService) =>
+app.MapGet("/example", ([FromServices] IHttpResultMapper mapper) =>
 {
-    var result = myService.GetUser();
-
-    // The serializer handles checking and responding accordingly.
-    return serializer.Serialize(result);
+    return mapper.Map(Result.Ok("Hello world"));
 });
 ```
 
-## Usage
+No `if`, no branching, no HTTP logic in the endpoint.
 
-Install the package:
 
-```shell
-Install-Package FluentResultsSerialization
-```
+## Rule-based mapping
 
-or
+Rules are evaluated **in order**.  
+The **first rule that matches** produces the HTTP response.
 
-```shell
-dotnet add package FluentResultsSerialization
-```
-
-Add `IResultSerializer` to your application and use it to serialize results:
+### Matching by error type
 
 ```csharp
-using FluentResultsSerialization;
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Injects an instance of IResultSerializer.
-builder.Services.AddResultSerializer();
-
-var app = builder.Build();
-
-// Uses IResultSerializer to serialize a Result.
-app.MapGet("/ping", (IResultSerializer serializer) => serializer.Serialize(Result.Ok("pong")));
+mapper
+    .WhenError<NotFoundError>()
+    .Map(_ => Results.StatusCode(StatusCodes.Status404NotFound));
 ```
 
-To define how `Result` instances are serialized, configure the behavior in DI using `AddResultSerializationStrategy`. This method accepts a builder that lets you specify serialization behavior. For example:
+
+### Mapping to RFC 7807 Problem Details
 
 ```csharp
-// Returns 400 Bad Request when the Result or Result<TValue>
-// contains a ValidationError. The error details are included in the response body.
-builder.Services.AddResultSerializationStrategy(builder => builder
-    .HandleReason<ValidationError>()
-    .WithStatus(System.Net.HttpStatusCode.BadRequest)
-    .WithTitle("Invalid request data.")
-    .WithContentType("application/problem+json")
-    .WithValidationErrors(result =>
-    {
-        const string ValidationErrorsKey = "ValidationErrors";
-
-        return result.Errors
-            .FirstOrDefault(x =>
-                x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata)
-                && metadata is IDictionary<string, string[]>)
-            ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>
-            ?? new Dictionary<string, string[]>();
-    }));
-
-// Returns 403 Forbidden when the Result or Result<TValue>
-// contains AuthorizationFailError.
-builder.Services.AddResultSerializationStrategy(builder => builder
-    .HandleReason<AuthorizationFailError>()
-    .WithStatus(System.Net.HttpStatusCode.Forbidden)
-    .WithTitle("User authorization failed.")
-    .WithContentType("application/problem+json"));
-
-// Returns 201 Created when the Result or Result<TValue>
-// contains CreatedSuccess.
-builder.Services.AddResultSerializationStrategy(builder => builder
-    .HandleReason<CreatedSuccess>()
-    .WithStatus(System.Net.HttpStatusCode.Created));
-
-// Returns 202 Accepted when a Result<SendDataRequest> is successful.
-builder.Services.AddResultSerializationStrategy(builder => builder
-    .HandleResult<SendDataRequest>(result => result.IsSuccess)
-    .WithStatus(System.Net.HttpStatusCode.Accepted));
-
-// Returns 204 No Content for successful Results.
-builder.Services.AddResultSerializationStrategy(builder => builder
-    .HandleResult(result => result.IsSuccess)
-    .WithStatus(System.Net.HttpStatusCode.NoContent));
-
-// Returns 200 OK for successful Results
-// or 500 Internal Server Error if it contains errors.
-builder.Services.AddResultSerializationStrategy();
+mapper
+    .WhenError<ValidationError>()
+    .Problem(p => p.WithValidationProblem<ValidationError>(
+        e => e.Errors
+    ));
 ```
 
-> :warning: Strategies are executed in the order they are added.
+Produces a standard **Problem Details** response with validation errors.
 
-> :warning: If no HTTP status code is specified for a configured case, `100 Continue` will be returned by default.
 
-### Error Display
+### Adding headers
 
-To help with debugging, responses may include details of what went wrong. To avoid leaking sensitive information, you can configure what gets displayed per case.
-
-> :warning: All failed `Result` responses follow the [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) specification. It’s strongly recommended you understand this standard for proper usage.
-
-You can set the value of the field "detail" for all responses handled by that strategy:
+Headers are defined **parallel to mapping**, not inside the body logic:
 
 ```csharp
-builder.Services.AddResultSerializationStrategy(builder => builder
-    .HandleReason<MyCustomError>()
-    .WithStatus(System.Net.HttpStatusCode.InternalServerError)
-    .WithDetail("Something went wrong."));
-
-var app = builder.Build();
-
-app.MapGet("/ping", (IResultSerializer serializer) =>
-    serializer.Serialize(
-        Result.Fail("Database connection failed.")
-            .WithError(new MyCustomError("Login failed for user 'DOMAIN\\username'."))));
+mapper
+    .WhenError<SecurityError>()
+    .WithHeader("WWW-Authenticate", "Bearer")
+    .Map(ctx => Results.Json(
+        new
+        {
+            error = "invalid_token",
+            error_description = ctx.FirstReason<SecurityError>().Message
+        }
+    ));
 ```
 
-```json
+
+### Matching by metadata
+
+Rules can match errors by metadata keys or values:
+
+```csharp
+mapper
+    .WhenErrorWithMetadata<Error>("error-codes")
+    .Problem(p => p
+        .WithStatus(System.Net.HttpStatusCode.InternalServerError)
+        .WithTitle("An internal server error occurred.")
+        .WithDetail(ctx =>
+            ctx.FirstReasonWithMetadata<Error>("error-codes").Message)
+        .WithExtension("error-codes", ctx =>
+            ctx.GetMetadata("error-codes"))
+    );
+```
+
+
+### Fallback rule
+
+Always define a fallback failure rule last:
+
+```csharp
+mapper
+    .WhenFailure()
+    .Problem(p => p
+        .WithStatus(System.Net.HttpStatusCode.InternalServerError)
+        .WithTitle("Unexpected failure"));
+```
+
+
+## Success mapping
+
+Success handling is built in:
+
+- `Result<T>` → **200 OK** with body
+- `Result` → **204 No Content**
+
+You can override this behavior by defining your own success rules:
+
+```csharp
+mapper
+    .WhenSuccess()
+    .Map(_ => Results.Ok());
+```
+
+
+## Example Program.cs
+
+A complete example configuration:
+
+```csharp
+builder.Services.AddHttpResultMapping(mapper =>
 {
-  "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-  "title": "An unexpected internal error occurred.",
-  "status": 500,
-  "detail": "Something went wrong."
-}
+    mapper
+        .WhenError<ValidationError>()
+        .Problem(p => p.WithValidationProblem<ValidationError>(e => e.Errors));
+
+    mapper
+        .WhenError<SecurityError>()
+        .WithHeader("WWW-Authenticate", "Bearer")
+        .Map(ctx => Results.Json(
+            new
+            {
+                error = "invalid_token",
+                error_description = ctx.FirstReason<SecurityError>().Message
+            }
+        ));
+
+    mapper
+        .WhenError<NotFoundError>()
+        .Map(_ => Results.StatusCode(StatusCodes.Status404NotFound));
+
+    mapper
+        .WhenErrorWithMetadata<Error>("error-codes")
+        .Problem(p => p
+            .WithStatus(System.Net.HttpStatusCode.InternalServerError)
+            .WithTitle("An internal server error occurred.")
+            .WithDetail(ctx =>
+                ctx.FirstReasonWithMetadata<Error>("error-codes").Message)
+            .WithExtension("error-codes", ctx =>
+                ctx.GetMetadata("error-codes"))
+        );
+
+    mapper
+        .WhenFailure()
+        .Problem(p => p
+            .WithStatus(System.Net.HttpStatusCode.InternalServerError)
+            .WithTitle("Unexpected failure"));
+});
 ```
 
-Or you can set the logic used during runtime to determine it's content:
 
-```csharp
-builder.Services.AddResultSerializationStrategy(builder => builder
-    .HandleReason<MyCustomError>()
-    .WithStatus(System.Net.HttpStatusCode.InternalServerError)
-    .WithDetail(result => result.Errors[0].Message));
+## What this package is not
 
-var app = builder.Build();
+- :x: Not an exception handler;
+- :x: Not a middleware replacement;
+- :x: Not a validation framework;
+- :x: Not tied to MVC controllers;
 
-app.MapGet("/ping", (IResultSerializer serializer) =>
-    serializer.Serialize(
-        Result.Fail("Database connection failed.")
-            .WithError(new MyCustomError("Login failed for user 'DOMAIN\\username'."))));
-```
+It is a **mapping layer** — nothing more, nothing less.
 
-```json
-{
-  "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-  "title": "An unexpected internal error occurred.",
-  "status": 500,
-  "detail": "Login failed for user 'DOMAIN\\username'."
-}
-```
 
-To add extensions to the response body, use the method `WithExtension` to define the key and logic used to fetch the value:
+## Summary
 
-```csharp
-builder.Services.AddResultSerializationStrategy(builder => builder
-    // ...
-    .WithExtension("error-codes", result =>
-    {
-        var value = result.Reasons
-            .SelectMany(r => r.Metadata)
-            .FirstOrDefault(m => m.Key == "error-codes")
-            .Value;
+**FluentResults.HttpMapping** gives you:
 
-        return value is null
-            ? StringValues.Empty
-            : new StringValues(value.ToString());
-    }));
-```
+- Clean endpoints;
+- Centralized HTTP behavior;
+- Predictable, testable rules;
+- Zero HTTP concerns in your domain layer;
 
-The extension will be added to the root of the JSON.
-
-```json
-{
-  "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-  "title": "An unexpected internal error occurred.",
-  "status": 500,
-  "detail": "Database connection failed.",
-  "error-codes": [
-    "ABC123",
-    "123ABC"
-  ]
-}
-```
-
-To return validation errors in the response, use the method `WithValidationErrors` to define the logic used to fetch the errors:
-
-```csharp
-builder.Services.AddResultSerializationStrategy(builder => builder
-    .HandleReason<Error>()
-    .WithStatus(HttpStatusCode.BadRequest)
-    .WithValidationErrors(result =>
-    {
-        const string ValidationErrorsKey = "ValidationErrors";
-
-        return result.Errors
-            .FirstOrDefault(x =>
-                x.Metadata.TryGetValue(ValidationErrorsKey, out var metadata)
-                && metadata is IDictionary<string, string[]>)
-            ?.Metadata[ValidationErrorsKey] as IDictionary<string, string[]>
-            ?? new Dictionary<string, string[]>();
-    }));
-
-var app = builder.Build();
-
-app.MapGet("/ping", (IResultSerializer serializer) =>
-    serializer.Serialize(
-        Result.Fail(
-            new Error("Invalid request")
-                .WithMetadata("ValidationErrors", new Dictionary<string, string[]>
-                {
-                    { "name", [ "The 'name' field cannot be empty." ] }
-                }))));
-```
-
-The validation details will be shown under the `errors` field, matching ASP.NET Core's `ValidationProblemDetails` format:
-
-```json
-{
-  "type": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
-  "title": "An unexpected internal error occurred.",
-  "status": 400,
-  "detail": "Database connection failed.",
-  "errors": {
-    "name": [
-      "The 'name' field cannot be empty."
-    ]
-  }
-}
-```
-
-### Response Body
-
-According to [RFC7230, Section 3.3](https://www.rfc-editor.org/rfc/rfc7230#section-3.3), HTTP responses with status codes 1XX, 204 (No Content), or 304 (Not Modified) must not include a body. Therefore, responses generated by this package omit the body in these cases.
-
-### Default Behaviors
-
-Some commonly expected behaviors are included when calling `AddResultSerializationStrategy()` with no parameters. Error messages respect the app's current culture.
-
-### Localization
-
-Messages generated by the package follow the application's current culture. If a translation is not available, the fallback language is English.
-
-If you're running in Docker, you might need to explicitly install culture support. For example, to install `en-US` and `pt-BR` locales in a Linux container, use this in your Dockerfile:
-
-```dockerfile
-RUN apt-get update && apt-get install -y \
-    locales \
-    && rm -rf /var/lib/apt/lists/* \
-    && locale-gen en_US.UTF-8 \
-    && locale-gen pt_BR.UTF-8 \
-    && update-locale LANG=en_US.UTF-8
-```
-
-## NuGet Package Generation
-
-This project is configured to generate a new `.nupkg` file in the `bin` folder after every successful build. You can find this configuration in the project properties.
-
-## Compatibility
-
-The package targets .NET 6 because the shared framework `Microsoft.AspNetCore.App` is not compatible with .NET Standard ([reference](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/target-aspnetcore?view=aspnetcore-8.0&tabs=visual-studio)). Therefore, it supports .NET 6 and newer.
+If you already use **FluentResults**, this package lets your HTTP layer finally match the same level of clarity.
