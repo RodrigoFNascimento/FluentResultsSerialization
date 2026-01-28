@@ -1,6 +1,7 @@
 ﻿using FluentResults.HttpMapping.Context;
-using FluentResults.HttpMapping.DSL;
 using System.Net;
+
+namespace FluentResults.HttpMapping.DSL;
 
 /// <summary>
 /// Internal immutable definition of an RFC 7807 problem mapping rule.
