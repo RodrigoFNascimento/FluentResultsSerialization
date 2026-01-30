@@ -11,7 +11,7 @@ namespace FluentResults.HttpMapping.Execution;
 /// produced by an endpoint, wraps it in an <see cref="HttpResultMappingContext"/>,
 /// and delegates execution to the configured mapping rule set.
 /// </summary>
-public sealed class DefaultHttpResultMapper : IHttpResultMapper
+internal sealed class DefaultHttpResultMapper : IHttpResultMapper
 {
     private readonly IHttpMappingRuleSet _ruleSet;
 

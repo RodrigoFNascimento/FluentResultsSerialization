@@ -14,7 +14,7 @@ namespace FluentResults.HttpMapping.Execution;
 /// HTTP response. If no rule matches, execution is expected to fail
 /// with an exception, as this indicates a configuration error.
 /// </remarks>
-public interface IHttpMappingRuleSet
+internal interface IHttpMappingRuleSet
 {
     /// <summary>
     /// Executes the rule set against the provided mapping context.

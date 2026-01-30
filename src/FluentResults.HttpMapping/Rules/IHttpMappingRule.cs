@@ -33,7 +33,7 @@ namespace FluentResults.HttpMapping.Rules;
 /// </item>
 /// </list>
 /// </remarks>
-public interface IHttpMappingRule
+internal interface IHttpMappingRule
 {
     /// <summary>
     /// Gets the headers produced by this rule.

@@ -9,7 +9,7 @@
 /// using the current <see cref="HttpResultMappingContext"/>.
 /// </para>
 /// </summary>
-public sealed class HeaderDescriptor
+internal sealed class HeaderDescriptor
 {
     /// <summary>
     /// Gets the HTTP header name.
