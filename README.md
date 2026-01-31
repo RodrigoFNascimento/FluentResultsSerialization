@@ -1,6 +1,6 @@
 # FluentResults.HttpMapping
 
-**FluentResults.HttpMapping** is a small, opinionated library that let's you map [FluentResults](https://github.com/altmann/FluentResults)' `Result` and `Result<T>` to HTTP responses **declaratively**, **consistently**, and **without leaking HTTP concerns into your domain layer**.
+**FluentResults.HttpMapping** is a small, opinionated library that let's you map [FluentResults](https://github.com/altmann/FluentResults) `Result` and `Result<T>` to HTTP responses **declaratively**, **consistently**, and **without leaking HTTP concerns into your domain layer**.
 
 
 ## The problem this package solves
@@ -46,9 +46,9 @@ Core principles:
   - No side effects;
 - **Minimal API first**
   - Designed for `IResult` and `Results.*`;
+  - Optional support for MVC controllers;
 
-This is not a framework.  
-It’s a thin, predictable mapping layer.
+This is not a framework. It’s a thin, predictable mapping layer.
 
 
 ## Installation
@@ -227,6 +227,55 @@ builder.Services.AddHttpResultMapping(mapper =>
             .WithTitle("Unexpected failure"));
 });
 ```
+
+## Using with MVC Controllers
+
+Although this package is primarily designed for Minimal APIs, it can also be used in ASP.NET Core applications that rely on MVC controllers.
+
+The HTTP mapping system always produces an ASP.NET `IResult`. To return that result from a controller action, you can adapt it to an `IActionResult` using the provided MVC adapter.
+
+### Example
+
+```csharp
+using FluentResults;
+using FluentResults.HttpMapping.Execution;
+using FluentResults.HttpMapping.MVC;
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("example")]
+public class ExampleController : ControllerBase
+{
+    private readonly IHttpResultMapper _mapper;
+
+    public ExampleController(IHttpResultMapper mapper)
+    {
+        _mapper = mapper;
+    }
+
+    [HttpGet("success")]
+    public IActionResult Success()
+    {
+        var result = Result.Ok(new { Message = "Hello from MVC" });
+        return _mapper.Map(result).ToActionResult();
+    }
+
+    [HttpGet("failure")]
+    public IActionResult Failure()
+    {
+        var result = Result.Fail("Something went wrong");
+        return _mapper.Map(result).ToActionResult();
+    }
+}
+```
+
+### Why this works
+
+- The HTTP mapping rules are **framework-agnostic**
+- Mapping always results in an `IResult`
+- MVC support is provided via a **thin adapter**, not a separate mapping system
+
+This ensures the same rules and behavior are shared between Minimal APIs and MVC controllers without duplication or special configuration.
 
 
 ## What this package is not
