@@ -179,7 +179,7 @@ public sealed class ProblemRuleBuilder
 
                     return new[]
                     {
-                        (Field: field.ToString()!, Message: error.Message)
+                        (Field: field.ToString()!, error.Message)
                     };
                 })
                 .GroupBy(x => x.Field)

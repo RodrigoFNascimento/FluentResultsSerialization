@@ -9,8 +9,8 @@ namespace FluentResults.HttpMapping.DSL;
 ///
 /// <para>
 /// <see cref="HttpResultMappingBuilder"/> is the main entry point for
-/// configuring how <see cref="FluentResults.Result"/> and
-/// <see cref="FluentResults.Result{T}"/> instances are translated into
+/// configuring how <see cref="Result"/> and
+/// <see cref="Result{T}"/> instances are translated into
 /// HTTP responses.
 /// </para>
 ///
