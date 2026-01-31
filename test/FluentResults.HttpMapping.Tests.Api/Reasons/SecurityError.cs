@@ -1,6 +1,6 @@
 ﻿using FluentResults;
 
-namespace TestApi.Reasons;
+namespace FluentResults.HttpMapping.Tests.Api.Reasons;
 
 public class SecurityError(string message) : Error(message)
 {

@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FluentResults.HttpMapping\FluentResults.HttpMapping.csproj" />
+    <ProjectReference Include="..\..\src\FluentResults.HttpMapping\FluentResults.HttpMapping.csproj" />
   </ItemGroup>
 
 </Project>

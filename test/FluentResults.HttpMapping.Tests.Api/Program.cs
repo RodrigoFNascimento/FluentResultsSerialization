@@ -1,9 +1,9 @@
 using FluentResults;
 using FluentResults.HttpMapping;
 using FluentResults.HttpMapping.Execution;
+using FluentResults.HttpMapping.Tests.Api.Reasons;
 using Microsoft.AspNetCore.Mvc;
 using Scalar.AspNetCore;
-using TestApi.Reasons;
 
 var builder = WebApplication.CreateBuilder(args);
 
