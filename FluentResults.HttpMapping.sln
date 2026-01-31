@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{5CB3E5E3-6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentResults.HttpMapping.Tests.Api", "test\FluentResults.HttpMapping.Tests.Api\FluentResults.HttpMapping.Tests.Api.csproj", "{E250FA04-3A75-5EF0-C3FB-086A69A78B6B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentResults.HttpMapping.Tests.Unit", "test\FluentResults.HttpMapping.Tests.Unit\FluentResults.HttpMapping.Tests.Unit.csproj", "{FB2513C7-F7A1-4857-83D5-05AD09A67C49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{E250FA04-3A75-5EF0-C3FB-086A69A78B6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E250FA04-3A75-5EF0-C3FB-086A69A78B6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E250FA04-3A75-5EF0-C3FB-086A69A78B6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB2513C7-F7A1-4857-83D5-05AD09A67C49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB2513C7-F7A1-4857-83D5-05AD09A67C49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB2513C7-F7A1-4857-83D5-05AD09A67C49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB2513C7-F7A1-4857-83D5-05AD09A67C49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -31,6 +37,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{7652921F-1F60-70B2-5F93-1CF3832088EC} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{E250FA04-3A75-5EF0-C3FB-086A69A78B6B} = {5CB3E5E3-6268-4247-9757-F990E517F320}
+		{FB2513C7-F7A1-4857-83D5-05AD09A67C49} = {5CB3E5E3-6268-4247-9757-F990E517F320}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AE336748-C550-45D7-BF95-902F3CBCFBBB}
