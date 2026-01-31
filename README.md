@@ -1,9 +1,6 @@
 # FluentResults.HttpMapping
 
-**FluentResults.HttpMapping** is a small, opinionated library that bridges 
-[FluentResults](https://github.com/altmann/FluentResults) with ASP.NET Minimal APIs.
-
-It lets you map `Result` and `Result<T>` to HTTP responses **declaratively**, **consistently**, and **without leaking HTTP concerns into your domain layer**.
+**FluentResults.HttpMapping** is a small, opinionated library that let's you map [FluentResults](https://github.com/altmann/FluentResults)' `Result` and `Result<T>` to HTTP responses **declaratively**, **consistently**, and **without leaking HTTP concerns into your domain layer**.
 
 
 ## The problem this package solves
@@ -95,8 +92,9 @@ No `if`, no branching, no HTTP logic in the endpoint.
 
 ## Rule-based mapping
 
-Rules are evaluated **in order**.  
-The **first rule that matches** produces the HTTP response.
+Rules are evaluated **in order**. The first rule that matches produces the HTTP response and no further rules are evaluated. Because of that, more specific rules must come before more generic ones.
+
+> First match wins!
 
 ### Matching by error type
 
