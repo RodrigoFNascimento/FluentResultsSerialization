@@ -15,6 +15,18 @@
     <Description>A small, opinionated library that lets you map FluentResults Result and Result&lt;T&gt; to HTTP responses declaratively and consistently, without leaking HTTP concerns into your domain layer.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Version>1.0.0</Version>
+    <PackageReleaseNotes>First stable release.
+
+FluentResults.HttpMapping provides a declarative, rule-based way to map
+FluentResults Result and Result&lt;T&gt; to HTTP responses in ASP.NET Core.
+
+Key features:
+- Rule-based HTTP mapping
+- RFC 7807 Problem Details support
+- Header mapping support
+- Works with Minimal APIs and MVC controllers
+- Fully DI-configured</PackageReleaseNotes>
+    <Copyright>Copyright (c) 2026 Rodrigo Nascimento</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
