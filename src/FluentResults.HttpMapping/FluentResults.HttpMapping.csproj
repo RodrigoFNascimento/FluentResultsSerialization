@@ -10,10 +10,10 @@
     <Authors>Rodrigo Nascimento</Authors>
     <PackageProjectUrl>https://github.com/RodrigoFNascimento/FluentResults.HttpMapping</PackageProjectUrl>
     <RepositoryUrl>https://github.com/RodrigoFNascimento/FluentResults.HttpMapping</RepositoryUrl>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>fluentresults; rfc-7807; http; minimal-api</PackageTags>
     <Description>A small, opinionated library that lets you map FluentResults Result and Result&lt;T&gt; to HTTP responses declaratively and consistently, without leaking HTTP concerns into your domain layer.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
