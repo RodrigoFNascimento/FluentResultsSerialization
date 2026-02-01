@@ -5,7 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>FluentResults.HttpMapping</Title>
     <Authors>Rodrigo Nascimento</Authors>
     <PackageProjectUrl>https://github.com/RodrigoFNascimento/FluentResults.HttpMapping</PackageProjectUrl>
