@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
-    <UseAppHost>false</UseAppHost>
+    <UseAppHost>true</UseAppHost>
   </PropertyGroup>
 
   <ItemGroup>
